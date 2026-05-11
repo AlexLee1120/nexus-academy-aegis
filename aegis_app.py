@@ -196,6 +196,15 @@ def build_dashboard_data() -> dict:
     v1_avg_ltv = get_metric_from_cache_or_sqlite(cache, "v1_avg_ltv_twd")
     v1_new_7d = get_metric_from_cache_or_sqlite(cache, "v1_new_users_7d")
 
+    # ── Phase 1.5 Step 4: YouTube Data API v3(Hina 星奈頻道真實流量)
+    yt_subscribers = get_metric_from_cache_or_sqlite(cache, "yt_subscribers")
+    yt_total_views = get_metric_from_cache_or_sqlite(cache, "yt_total_views")
+    yt_total_videos = get_metric_from_cache_or_sqlite(cache, "yt_total_videos")
+    yt_uploads_7d = get_metric_from_cache_or_sqlite(cache, "yt_uploads_7d")
+    yt_views_7d = get_metric_from_cache_or_sqlite(cache, "yt_views_7d")
+    yt_likes_7d = get_metric_from_cache_or_sqlite(cache, "yt_likes_7d")
+    yt_comments_7d = get_metric_from_cache_or_sqlite(cache, "yt_comments_7d")
+
     # ── 推波 7 天 stats
     fb_success = get_metric_from_cache_or_sqlite(cache, "fb_publish_7d_success")
     fb_fail = get_metric_from_cache_or_sqlite(cache, "fb_publish_7d_fail")
@@ -260,6 +269,15 @@ def build_dashboard_data() -> dict:
             "total_ltv_twd": int(safe_value(v1_total_ltv, 0)),
             "avg_ltv_twd": int(safe_value(v1_avg_ltv, 0)),
             "new_users_7d": int(safe_value(v1_new_7d, 0)),
+        },
+        "youtube": {
+            "subscribers": int(safe_value(yt_subscribers, 0)),
+            "total_views": int(safe_value(yt_total_views, 0)),
+            "total_videos": int(safe_value(yt_total_videos, 0)),
+            "uploads_7d": int(safe_value(yt_uploads_7d, 0)),
+            "views_7d": int(safe_value(yt_views_7d, 0)),
+            "likes_7d": int(safe_value(yt_likes_7d, 0)),
+            "comments_7d": int(safe_value(yt_comments_7d, 0)),
         },
         "publish_7day": {
             "fb": {"success": int(safe_value(fb_success)), "fail": int(safe_value(fb_fail))},

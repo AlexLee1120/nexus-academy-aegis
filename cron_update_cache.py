@@ -68,6 +68,11 @@ PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "").strip()
 IG_ACCESS_TOKEN = os.getenv("IG_ACCESS_TOKEN", "").strip()  # Phase 1 通常 = PAGE_ACCESS_TOKEN
 META_GRAPH_API = "https://graph.facebook.com/v25.0"
 
+# Phase 1.5 Step 4 ── YouTube Data API v3
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "").strip()
+YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID", "").strip()
+YOUTUBE_API = "https://www.googleapis.com/youtube/v3"
+
 
 # ─────────────────────────────────────────────────────
 # DB helpers
@@ -520,6 +525,156 @@ def fetch_meta_aggregate_insights(days: int = 7) -> dict:
 
 
 # ─────────────────────────────────────────────────────
+# Phase 1.5 Step 4 ── YouTube Data API v3
+# ─────────────────────────────────────────────────────
+
+def fetch_youtube_stats(days: int = 7) -> dict:
+    """Call YouTube Data API v3 拿頻道 aggregate stats
+    return {
+        "subscribers": N,           # 訂閱數
+        "total_views": N,           # 累積觀看次數
+        "total_videos": N,          # 累積影片數
+        "uploads_7d": N,            # 過去 N 天上傳數
+        "views_7d": N,              # 過去 N 天總觀看(對 7 天影片加總)
+        "likes_7d": N,              # 過去 N 天總讚數
+        "comments_7d": N,           # 過去 N 天總留言數
+    }
+    fail return {"_error": ...} (不擋整個 cron)
+
+    API quota: ~3 units / cron run(10K daily quota = 3000 cron/day,完全不會超)"""
+    if not YOUTUBE_API_KEY:
+        return {"_skipped": "YOUTUBE_API_KEY 未設"}
+    if not YOUTUBE_CHANNEL_ID:
+        return {"_skipped": "YOUTUBE_CHANNEL_ID 未設"}
+
+    # ── Step 1: channels.list 拿 statistics + uploads playlist ID(1 unit)
+    try:
+        resp = requests.get(
+            f"{YOUTUBE_API}/channels",
+            params={
+                "part": "statistics,contentDetails",
+                "id": YOUTUBE_CHANNEL_ID,
+                "key": YOUTUBE_API_KEY,
+            },
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            err_detail = resp.text[:300]
+            try:
+                err_json = resp.json().get("error", {})
+                err_detail = f"code={err_json.get('code')} | msg={err_json.get('message','')[:200]}"
+            except Exception:
+                pass
+            return {"_error": f"channels.list HTTP {resp.status_code} | {err_detail}"}
+        items = resp.json().get("items", [])
+        if not items:
+            return {"_error": f"channels.list return 空 items(channel ID 對嗎?{YOUTUBE_CHANNEL_ID})"}
+        channel = items[0]
+        stats = channel.get("statistics", {})
+        subscribers = int(stats.get("subscriberCount", 0) or 0)
+        total_views = int(stats.get("viewCount", 0) or 0)
+        total_videos = int(stats.get("videoCount", 0) or 0)
+        uploads_playlist = channel.get("contentDetails", {}).get("relatedPlaylists", {}).get("uploads", "")
+        if not uploads_playlist:
+            return {
+                "subscribers": subscribers, "total_views": total_views, "total_videos": total_videos,
+                "uploads_7d": 0, "views_7d": 0, "likes_7d": 0, "comments_7d": 0,
+                "_warning": "channel 沒有 uploads playlist(罕見)",
+            }
+    except Exception as e:
+        return {"_error": f"channels.list exception: {str(e)[:150]}"}
+
+    # ── Step 2: playlistItems.list 拿過去 N 天上傳 video IDs(1 unit per page)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    recent_video_ids = []
+    page_token = None
+    pages_fetched = 0
+    max_pages = 4  # 安全上限(50 items/page * 4 = 200 影片/N 天,Hina daily 7/週 遠遠夠)
+
+    try:
+        while pages_fetched < max_pages:
+            params = {
+                "part": "snippet,contentDetails",
+                "playlistId": uploads_playlist,
+                "maxResults": 50,
+                "key": YOUTUBE_API_KEY,
+            }
+            if page_token:
+                params["pageToken"] = page_token
+            resp = requests.get(f"{YOUTUBE_API}/playlistItems", params=params, timeout=15)
+            if resp.status_code != 200:
+                break
+            data = resp.json()
+            items = data.get("items", [])
+            stop_paging = False
+            for item in items:
+                published = item.get("contentDetails", {}).get("videoPublishedAt") or item.get("snippet", {}).get("publishedAt", "")
+                vid_id = item.get("contentDetails", {}).get("videoId") or item.get("snippet", {}).get("resourceId", {}).get("videoId")
+                if not vid_id or not published:
+                    continue
+                try:
+                    pub_ts = datetime.fromisoformat(published.replace("Z", "+00:00"))
+                except Exception:
+                    continue
+                if pub_ts >= cutoff:
+                    recent_video_ids.append(vid_id)
+                else:
+                    # uploads playlist 是 desc by date,遇到 < cutoff 就停 paging
+                    stop_paging = True
+                    break
+            pages_fetched += 1
+            page_token = data.get("nextPageToken")
+            if stop_paging or not page_token:
+                break
+    except Exception as e:
+        return {
+            "subscribers": subscribers, "total_views": total_views, "total_videos": total_videos,
+            "uploads_7d": 0, "views_7d": 0, "likes_7d": 0, "comments_7d": 0,
+            "_warning": f"playlistItems exception: {str(e)[:150]}",
+        }
+
+    # ── Step 3: videos.list 對 7 天 video 拿 statistics 加總(1 unit per 50 IDs)
+    views_7d = likes_7d = comments_7d = 0
+    if recent_video_ids:
+        try:
+            # batch 50 個 ID 一次 query
+            for i in range(0, len(recent_video_ids), 50):
+                batch = recent_video_ids[i:i + 50]
+                resp = requests.get(
+                    f"{YOUTUBE_API}/videos",
+                    params={
+                        "part": "statistics",
+                        "id": ",".join(batch),
+                        "key": YOUTUBE_API_KEY,
+                    },
+                    timeout=15,
+                )
+                if resp.status_code != 200:
+                    continue
+                for v in resp.json().get("items", []):
+                    s = v.get("statistics", {})
+                    views_7d += int(s.get("viewCount", 0) or 0)
+                    likes_7d += int(s.get("likeCount", 0) or 0)
+                    comments_7d += int(s.get("commentCount", 0) or 0)
+        except Exception as e:
+            return {
+                "subscribers": subscribers, "total_views": total_views, "total_videos": total_videos,
+                "uploads_7d": len(recent_video_ids), "views_7d": 0, "likes_7d": 0, "comments_7d": 0,
+                "_warning": f"videos.list exception: {str(e)[:150]}",
+            }
+
+    return {
+        "subscribers": subscribers,
+        "total_views": total_views,
+        "total_videos": total_videos,
+        "uploads_7d": len(recent_video_ids),
+        "views_7d": views_7d,
+        "likes_7d": likes_7d,
+        "comments_7d": comments_7d,
+    }
+
+
+# ─────────────────────────────────────────────────────
 # Phase 1.5: Cache sync(SQLite → cache.json → git push 給 Render)
 # ─────────────────────────────────────────────────────
 
@@ -809,6 +964,31 @@ def main():
             {"fb": fb_ins, "ig": ig_ins},
             dry_run=args.dry_run,
         )
+
+    # ── 7. Phase 1.5 Step 4:YouTube Data API v3(Hina 星奈頻道真實流量)
+    print("\n📊 7. YouTube Data API v3(Hina 星奈頻道)")
+    yt = fetch_youtube_stats(days=7)
+    if yt.get("_skipped"):
+        print(f"   ⚠️  YouTube skip:{yt['_skipped']}")
+    elif yt.get("_error"):
+        print(f"   ❌ YouTube fail:{yt['_error']}")
+        insert_event(
+            conn, "youtube_api_fail", "error",
+            f"YouTube Data API fail: {yt['_error']}", {"channel_id": YOUTUBE_CHANNEL_ID},
+            dry_run=args.dry_run,
+        )
+    else:
+        if yt.get("_warning"):
+            print(f"   ⚠️  YouTube partial:{yt['_warning']}")
+        print(f"   ✅ 訂閱:{yt['subscribers']} | 累積觀看:{yt['total_views']:,} | 累積影片:{yt['total_videos']}")
+        print(f"   ✅ 過去 7 天上傳:{yt['uploads_7d']} 部 | 觀看:{yt['views_7d']:,} | 讚:{yt['likes_7d']} | 留言:{yt['comments_7d']}")
+        insert_metric(conn, "yt_subscribers", float(yt["subscribers"]), "count", "youtube_data_api", dry_run=args.dry_run)
+        insert_metric(conn, "yt_total_views", float(yt["total_views"]), "count", "youtube_data_api", dry_run=args.dry_run)
+        insert_metric(conn, "yt_total_videos", float(yt["total_videos"]), "count", "youtube_data_api", dry_run=args.dry_run)
+        insert_metric(conn, "yt_uploads_7d", float(yt["uploads_7d"]), "count", "youtube_data_api", dry_run=args.dry_run)
+        insert_metric(conn, "yt_views_7d", float(yt["views_7d"]), "count", "youtube_data_api", dry_run=args.dry_run)
+        insert_metric(conn, "yt_likes_7d", float(yt["likes_7d"]), "count", "youtube_data_api", dry_run=args.dry_run)
+        insert_metric(conn, "yt_comments_7d", float(yt["comments_7d"]), "count", "youtube_data_api", dry_run=args.dry_run)
 
     # ── Commit SQLite
     if not args.dry_run:
