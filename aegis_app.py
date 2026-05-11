@@ -197,6 +197,19 @@ def build_dashboard_data() -> dict:
     captions_count = get_metric_from_cache_or_sqlite(cache, "buzz_captions_count")
     lens_count = get_metric_from_cache_or_sqlite(cache, "lens_reviews_count")
 
+    # ── Phase 1.5 Step 2:Meta Graph API public summary(FB)+ public fields fallback(IG)
+    # 註(2026-05-11):FB insights API 在 v25.0 對我們 token 全 #100,改用 public summary fields
+    # → 拿 likes/comments/shares(真實互動);沒有 reach/impressions
+    fb_likes = get_metric_from_cache_or_sqlite(cache, "fb_likes_7d")
+    fb_comments = get_metric_from_cache_or_sqlite(cache, "fb_comments_7d")
+    fb_shares = get_metric_from_cache_or_sqlite(cache, "fb_shares_7d")
+    fb_engagement = get_metric_from_cache_or_sqlite(cache, "fb_engagement_7d")
+    ig_reach = get_metric_from_cache_or_sqlite(cache, "ig_reach_7d")
+    ig_interactions = get_metric_from_cache_or_sqlite(cache, "ig_interactions_7d")
+    ig_saved = get_metric_from_cache_or_sqlite(cache, "ig_saved_7d")
+    ig_likes = get_metric_from_cache_or_sqlite(cache, "ig_likes_7d")
+    ig_comments = get_metric_from_cache_or_sqlite(cache, "ig_comments_7d")
+
     # ── Events(優先 cache,否 SQLite)
     if cache:
         events = cache.get("recent_events", [])[:20]
@@ -234,6 +247,21 @@ def build_dashboard_data() -> dict:
         "system_health": {
             "buzz_captions_count": int(safe_value(captions_count, 0)),
             "lens_reviews_count": int(safe_value(lens_count, 0)),
+        },
+        "real_reach_7day": {
+            "fb": {
+                "likes": int(safe_value(fb_likes, 0)),
+                "comments": int(safe_value(fb_comments, 0)),
+                "shares": int(safe_value(fb_shares, 0)),
+                "engagement": int(safe_value(fb_engagement, 0)),
+            },
+            "ig": {
+                "reach": int(safe_value(ig_reach, 0)),
+                "interactions": int(safe_value(ig_interactions, 0)),
+                "saved": int(safe_value(ig_saved, 0)),
+                "likes": int(safe_value(ig_likes, 0)),
+                "comments": int(safe_value(ig_comments, 0)),
+            },
         },
         "events": events,
     }

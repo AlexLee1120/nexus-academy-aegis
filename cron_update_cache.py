@@ -38,9 +38,10 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 try:
+    import requests
     from dotenv import load_dotenv
 except ImportError:
-    print("❌ 缺 python-dotenv,跑: pip install -r requirements.txt")
+    print("❌ 缺套件,跑: pip install -r requirements.txt")
     sys.exit(1)
 
 SCRIPT_DIR = Path(__file__).parent
@@ -61,6 +62,11 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
 GITHUB_OWNER = os.getenv("GITHUB_OWNER", "AlexLee1120")
 GITHUB_REPO = os.getenv("GITHUB_REPO", "nexus-academy-aegis")
 GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main")
+
+# Phase 1.5 Step 2 ── Meta Graph API insights
+PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "").strip()
+IG_ACCESS_TOKEN = os.getenv("IG_ACCESS_TOKEN", "").strip()  # Phase 1 通常 = PAGE_ACCESS_TOKEN
+META_GRAPH_API = "https://graph.facebook.com/v25.0"
 
 
 # ─────────────────────────────────────────────────────
@@ -185,6 +191,240 @@ def fetch_lens_reports_count() -> int:
         return 0
     files = list(LENS_REPORTS_PATH.glob("weekly-review-W*.md"))
     return len(files)
+
+
+# ─────────────────────────────────────────────────────
+# Phase 1.5 Step 2 ── Meta Graph API insights
+# ─────────────────────────────────────────────────────
+
+def extract_post_ids_from_publish_log(days: int = 7) -> dict:
+    """從 publish_log.json 抽出過去 N 天 success entries 的 post_id / media_id
+    回傳 {"fb": [post_id, ...], "ig": [media_id, ...]}"""
+    if not PUBLISH_LOG_PATH.exists():
+        return {"fb": [], "ig": []}
+
+    try:
+        log = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {"fb": [], "ig": []}
+
+    cutoff = datetime.now() - timedelta(days=days)
+    fb_ids = []
+    ig_ids = []
+
+    for entry in log:
+        try:
+            ts = datetime.fromisoformat(entry["timestamp"])
+            if ts < cutoff:
+                continue
+            if not entry.get("success"):
+                continue
+            platform = entry.get("platform", "")
+            result = entry.get("result", {})
+
+            if platform == "fb":
+                # FB result format: {"id": "page_id_post_id"} or {"post_id": ...}
+                pid = result.get("id") or result.get("post_id")
+                if pid:
+                    fb_ids.append(pid)
+            elif platform == "ig":
+                # IG result format: {"container_id": ..., "publish": {"id": "media_id"}}
+                pub = result.get("publish", {})
+                mid = pub.get("id") if isinstance(pub, dict) else None
+                if mid:
+                    ig_ids.append(mid)
+        except Exception:
+            continue
+
+    return {"fb": fb_ids, "ig": ig_ids}
+
+
+def fetch_fb_post_insights(post_id: str, token: str) -> dict:
+    """call Meta Graph API 拿 FB Page post 互動數據
+    return {"likes": int, "comments": int, "shares": int, "engagement": int}
+    fail return 0s + log warning(不擋整個 cron)
+
+    註(2026-05-11):
+    - insights API 在 v25.0 對我們 token 全 #100 → 放棄
+    - 改用 public summary fields(用 pages_read_engagement scope,已有)
+    - v25.0 deprecate 掉了:shares、reactions.summary
+    - 還活著:comments.summary(true)、likes.summary(true)── likes 是 OG endpoint,理論上最 stable
+    - 同時印 raw response 給 debug,看 API 還支援什麼 fields"""
+    try:
+        resp = requests.get(
+            f"{META_GRAPH_API}/{post_id}",
+            params={
+                "fields": "likes.summary(true),comments.summary(true),created_time",
+                "access_token": token,
+            },
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            err_detail = resp.text[:300]
+            try:
+                err_json = resp.json().get("error", {})
+                err_detail = f"code={err_json.get('code')} | type={err_json.get('type')} | msg={err_json.get('message','')[:200]}"
+            except Exception:
+                pass
+            return {"likes": 0, "comments": 0, "shares": 0, "engagement": 0, "_error": f"HTTP {resp.status_code} | {err_detail}"}
+        data = resp.json()
+        likes = int(data.get("likes", {}).get("summary", {}).get("total_count", 0) or 0)
+        comments = int(data.get("comments", {}).get("summary", {}).get("total_count", 0) or 0)
+        return {
+            "likes": likes,
+            "comments": comments,
+            "shares": 0,  # v25.0 deprecate,顯示 N/A
+            "engagement": likes + comments,
+            "_raw_sample": {
+                "created_time": data.get("created_time"),
+                "available_keys": list(data.keys()),
+            },
+        }
+    except Exception as e:
+        return {"likes": 0, "comments": 0, "shares": 0, "engagement": 0, "_error": str(e)[:100]}
+
+
+def fetch_ig_media_insights(media_id: str, token: str) -> dict:
+    """call Meta Graph API 拿 IG media insights
+    return {"reach": int, "saved": int, "likes": int, "comments": int, "interactions": int}
+
+    註:IG insights API 需要 instagram_manage_insights scope(我們 OAuth 沒加,等 Phase 1.5 補)
+    Phase 1.5 fallback:用 public fields(/{media_id}?fields=like_count,comments_count)
+    這個 instagram_basic 就夠 ── 可拿 likes / comments(不需要 manage_insights)"""
+
+    # Step 1:try insights API(可能 fail because scope missing)
+    try:
+        resp = requests.get(
+            f"{META_GRAPH_API}/{media_id}/insights",
+            params={
+                "metric": "reach,saved,likes,comments,total_interactions",
+                "access_token": token,
+            },
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            # 成功(scope 夠)── 拿到完整 insights
+            data = resp.json().get("data", [])
+            result = {"reach": 0, "saved": 0, "likes": 0, "comments": 0, "interactions": 0}
+            for item in data:
+                name = item.get("name", "")
+                values = item.get("values", [])
+                if not values:
+                    continue
+                value = values[0].get("value", 0)
+                if name == "reach":
+                    result["reach"] = int(value or 0)
+                elif name == "saved":
+                    result["saved"] = int(value or 0)
+                elif name == "likes":
+                    result["likes"] = int(value or 0)
+                elif name == "comments":
+                    result["comments"] = int(value or 0)
+                elif name == "total_interactions":
+                    result["interactions"] = int(value or 0)
+            return result
+        # else: insights API fail → 走 fallback Step 2
+        insights_err = ""
+        try:
+            insights_err = resp.json().get("error", {}).get("message", "")[:100]
+        except Exception:
+            pass
+    except Exception as e:
+        insights_err = str(e)[:100]
+
+    # Step 2:fallback ── public fields(只需要 instagram_basic scope)
+    try:
+        resp2 = requests.get(
+            f"{META_GRAPH_API}/{media_id}",
+            params={
+                "fields": "like_count,comments_count,timestamp,permalink,media_type",
+                "access_token": token,
+            },
+            timeout=15,
+        )
+        if resp2.status_code == 200:
+            data = resp2.json()
+            return {
+                "reach": 0,  # 沒有 fallback 來源
+                "saved": 0,  # 沒有 fallback 來源
+                "likes": int(data.get("like_count", 0) or 0),
+                "comments": int(data.get("comments_count", 0) or 0),
+                "interactions": int(data.get("like_count", 0) or 0) + int(data.get("comments_count", 0) or 0),
+                "_fallback": f"用 public fields(insights scope 缺 instagram_manage_insights)",
+                "_raw_sample": {
+                    "like_count": data.get("like_count"),
+                    "comments_count": data.get("comments_count"),
+                    "timestamp": data.get("timestamp"),
+                    "permalink": data.get("permalink"),
+                    "media_type": data.get("media_type"),
+                },
+            }
+        err_detail = resp2.text[:300]
+        try:
+            err_json = resp2.json().get("error", {})
+            err_detail = f"code={err_json.get('code')} | type={err_json.get('type')} | msg={err_json.get('message','')[:200]}"
+        except Exception:
+            pass
+        return {"reach": 0, "saved": 0, "likes": 0, "comments": 0, "interactions": 0, "_error": f"insights fail: {insights_err} | fallback fail: HTTP {resp2.status_code} | {err_detail}"}
+    except Exception as e:
+        return {"reach": 0, "saved": 0, "likes": 0, "comments": 0, "interactions": 0, "_error": f"insights fail: {insights_err} | fallback exception: {str(e)[:100]}"}
+
+
+def fetch_meta_aggregate_insights(days: int = 7) -> dict:
+    """聚合過去 N 天 FB + IG 真實觸及 / engagement
+    return:
+    {
+        "fb": {"reach": N, "engaged": N, "clicks": N, "post_count": N, "errors": N},
+        "ig": {"reach": N, "interactions": N, "saved": N, "likes": N, "comments": N, "post_count": N, "errors": N}
+    }"""
+    if not PAGE_ACCESS_TOKEN:
+        return {
+            "fb": {"likes": 0, "comments": 0, "shares": 0, "engagement": 0, "post_count": 0, "errors": 0, "_skipped": "PAGE_ACCESS_TOKEN 未設"},
+            "ig": {"reach": 0, "interactions": 0, "saved": 0, "likes": 0, "comments": 0, "post_count": 0, "errors": 0, "_skipped": "PAGE_ACCESS_TOKEN 未設"},
+        }
+
+    ids = extract_post_ids_from_publish_log(days)
+    fb_token = PAGE_ACCESS_TOKEN
+    ig_token = IG_ACCESS_TOKEN or PAGE_ACCESS_TOKEN  # Phase 1 fallback
+
+    # FB aggregate(2026-05-11:用 public summary fields ── likes/comments
+    # insights API 在 v25.0 對我們 token 全 #100,放棄 insights 路線)
+    fb_agg = {"likes": 0, "comments": 0, "shares": 0, "engagement": 0, "post_count": len(ids["fb"]), "errors": 0, "error_samples": [], "raw_samples": []}
+    for pid in ids["fb"]:
+        ins = fetch_fb_post_insights(pid, fb_token)
+        if "_error" in ins:
+            fb_agg["errors"] += 1
+            if len(fb_agg["error_samples"]) < 2:
+                fb_agg["error_samples"].append({"post_id": pid, "error": ins["_error"]})
+        else:
+            fb_agg["likes"] += ins.get("likes", 0)
+            fb_agg["comments"] += ins.get("comments", 0)
+            fb_agg["shares"] += ins.get("shares", 0)
+            fb_agg["engagement"] += ins.get("engagement", 0)
+            if len(fb_agg["raw_samples"]) < 2 and "_raw_sample" in ins:
+                fb_agg["raw_samples"].append({"post_id": pid, **ins["_raw_sample"]})
+
+    # IG aggregate
+    ig_agg = {"reach": 0, "interactions": 0, "saved": 0, "likes": 0, "comments": 0, "post_count": len(ids["ig"]), "errors": 0, "error_samples": [], "fallback_count": 0, "raw_samples": []}
+    for mid in ids["ig"]:
+        ins = fetch_ig_media_insights(mid, ig_token)
+        if "_error" in ins:
+            ig_agg["errors"] += 1
+            if len(ig_agg["error_samples"]) < 2:
+                ig_agg["error_samples"].append({"media_id": mid, "error": ins["_error"]})
+        else:
+            if "_fallback" in ins:
+                ig_agg["fallback_count"] += 1
+                # 留前 2 筆 raw response sample 給 debug 用
+                if len(ig_agg["raw_samples"]) < 2 and "_raw_sample" in ins:
+                    ig_agg["raw_samples"].append({"media_id": mid, **ins["_raw_sample"]})
+            ig_agg["reach"] += ins["reach"]
+            ig_agg["interactions"] += ins["interactions"]
+            ig_agg["saved"] += ins["saved"]
+            ig_agg["likes"] += ins["likes"]
+            ig_agg["comments"] += ins["comments"]
+
+    return {"fb": fb_agg, "ig": ig_agg}
 
 
 # ─────────────────────────────────────────────────────
@@ -391,6 +631,66 @@ def main():
     lens_count = fetch_lens_reports_count()
     print(f"   ✅ {lens_count} 份 weekly-review-W*.md")
     insert_metric(conn, "lens_reviews_count", float(lens_count), "count", "lens_reports", dry_run=args.dry_run)
+
+    # ── 6. Phase 1.5 Step 2:Meta Graph API insights(真實觸及)
+    print("\n📊 6. Meta Graph API insights(過去 7 天 FB + IG 真實觸及)")
+    meta_insights = fetch_meta_aggregate_insights(days=7)
+
+    fb_ins = meta_insights["fb"]
+    if fb_ins.get("_skipped"):
+        print(f"   ⚠️  FB skip:{fb_ins['_skipped']}")
+    else:
+        print(f"   FB Page({fb_ins['post_count']} 篇,{fb_ins['errors']} errors):")
+        print(f"     likes={fb_ins['likes']} | comments={fb_ins['comments']} | shares={fb_ins['shares']} | engagement={fb_ins['engagement']}")
+        if fb_ins.get("raw_samples"):
+            print(f"   🔍 FB raw response 樣本(前 2 筆,debug 用):")
+            for r in fb_ins["raw_samples"]:
+                print(f"     post_id={r.get('post_id')}")
+                print(f"     created_time={r.get('created_time')} | available_keys={r.get('available_keys')}")
+        if fb_ins.get("error_samples"):
+            print(f"   ⚠️  FB errors 詳情(前 2 筆):")
+            for e in fb_ins["error_samples"]:
+                print(f"     post_id={e['post_id']}")
+                print(f"     error: {e['error']}")
+        insert_metric(conn, "fb_likes_7d", float(fb_ins["likes"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "fb_comments_7d", float(fb_ins["comments"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "fb_shares_7d", float(fb_ins["shares"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "fb_engagement_7d", float(fb_ins["engagement"]), "count", "meta_graph_api", dry_run=args.dry_run)
+
+    ig_ins = meta_insights["ig"]
+    if ig_ins.get("_skipped"):
+        print(f"   ⚠️  IG skip:{ig_ins['_skipped']}")
+    else:
+        fallback_note = f" (fallback used for {ig_ins.get('fallback_count', 0)} posts)" if ig_ins.get("fallback_count", 0) > 0 else ""
+        print(f"   IG({ig_ins['post_count']} 篇,{ig_ins['errors']} errors){fallback_note}:")
+        print(f"     reach={ig_ins['reach']} | interactions={ig_ins['interactions']} | saved={ig_ins['saved']} | likes={ig_ins['likes']} | comments={ig_ins['comments']}")
+        if ig_ins.get("fallback_count", 0) > 0:
+            print(f"   ℹ️  IG fallback 模式(scope 缺 instagram_manage_insights):reach/saved=0,只拿 likes/comments")
+        if ig_ins.get("raw_samples"):
+            print(f"   🔍 IG fallback raw response 樣本(前 2 筆,debug 用):")
+            for r in ig_ins["raw_samples"]:
+                print(f"     media_id={r.get('media_id')}")
+                print(f"     like_count={r.get('like_count')} | comments_count={r.get('comments_count')} | type={r.get('media_type')}")
+                print(f"     permalink={r.get('permalink')}")
+        if ig_ins.get("error_samples"):
+            print(f"   ⚠️  IG errors 詳情(前 2 筆):")
+            for e in ig_ins["error_samples"]:
+                print(f"     media_id={e['media_id']}")
+                print(f"     error: {e['error']}")
+        insert_metric(conn, "ig_reach_7d", float(ig_ins["reach"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "ig_interactions_7d", float(ig_ins["interactions"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "ig_saved_7d", float(ig_ins["saved"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "ig_likes_7d", float(ig_ins["likes"]), "count", "meta_graph_api", dry_run=args.dry_run)
+        insert_metric(conn, "ig_comments_7d", float(ig_ins["comments"]), "count", "meta_graph_api", dry_run=args.dry_run)
+
+    # Detect events:errors > 0 → warning
+    if fb_ins.get("errors", 0) > 0 or ig_ins.get("errors", 0) > 0:
+        insert_event(
+            conn, "meta_insights_partial_fail", "warning",
+            f"Meta Graph API insights 部分 post 拉失敗(FB errors={fb_ins.get('errors',0)}, IG errors={ig_ins.get('errors',0)})",
+            {"fb": fb_ins, "ig": ig_ins},
+            dry_run=args.dry_run,
+        )
 
     # ── Commit SQLite
     if not args.dry_run:

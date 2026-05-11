@@ -109,6 +109,69 @@
         </section>
 
         <!-- ─────────────────────────────────────────── -->
+        <!-- Section 2.5: 真實觸及(Phase 1.5 Step 2)    -->
+        <!-- ─────────────────────────────────────────── -->
+        <section>
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">🎯 真實互動(過去 7 天 · Meta Graph API)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- FB Page real metrics(public summary fields) -->
+                <div class="bg-white rounded-lg shadow p-5 border-t-4 border-blue-600">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-sm font-semibold text-slate-700">📘 FB Page</div>
+                        <div class="text-xs text-slate-400">Nexus Academy 啟源學院</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-blue-600">{{ data.real_reach_7day.fb.likes }}</div>
+                            <div class="text-xs text-slate-500 mt-1">反應(讚/心/...)</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-slate-600">{{ data.real_reach_7day.fb.comments }}</div>
+                            <div class="text-xs text-slate-500 mt-1">留言</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-purple-600">{{ data.real_reach_7day.fb.engagement }}</div>
+                            <div class="text-xs text-slate-500 mt-1">總互動</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IG real metrics -->
+                <div class="bg-white rounded-lg shadow p-5 border-t-4 border-pink-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-sm font-semibold text-slate-700">📸 IG @hina_nexus_academy</div>
+                        <div class="text-xs text-slate-400">星奈學姐</div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 text-center">
+                        <div>
+                            <div class="text-xl font-bold text-pink-600">{{ data.real_reach_7day.ig.reach }}</div>
+                            <div class="text-xs text-slate-500 mt-1">Reach</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-rose-500">{{ data.real_reach_7day.ig.interactions }}</div>
+                            <div class="text-xs text-slate-500 mt-1">互動</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-amber-500">{{ data.real_reach_7day.ig.saved }}</div>
+                            <div class="text-xs text-slate-500 mt-1">收藏</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-red-500">{{ data.real_reach_7day.ig.likes }}</div>
+                            <div class="text-xs text-slate-500 mt-1">Like</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-slate-600">{{ data.real_reach_7day.ig.comments }}</div>
+                            <div class="text-xs text-slate-500 mt-1">留言</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <p class="text-xs text-slate-400 mt-2">資料來源:Meta Graph API public summary fields(FB)+ public fields(IG)── 跟「推波 7 天 stats」表互補(那個顯示 publish 成功率,這個顯示真實互動數)。註:insights API v25.0 對我們 token 受限,改用 public 欄位 fallback。</p>
+        </section>
+
+        <!-- ─────────────────────────────────────────── -->
         <!-- Section 3: Buzz / Lens 系統健康             -->
         <!-- ─────────────────────────────────────────── -->
         <section>
