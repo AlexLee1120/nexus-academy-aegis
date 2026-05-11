@@ -1,12 +1,12 @@
 {
   "schema_version": "1.5.0",
-  "exported_at": "2026-05-11T15:53:33.652551",
+  "exported_at": "2026-05-11T16:01:41.220934",
   "latest_metrics": {
     "buzz_captions_count": {
       "value": 0.0,
       "unit": "count",
       "source": "buzz_captions_json",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "fb_clicks_7d": {
       "value": 0.0,
@@ -18,7 +18,7 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "fb_engaged_7d": {
       "value": 0.0,
@@ -30,7 +30,7 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "fb_impressions_7d": {
       "value": 0.0,
@@ -42,19 +42,19 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "fb_publish_7d_fail": {
       "value": 3.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "fb_publish_7d_success": {
       "value": 3.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "fb_reach_7d": {
       "value": 0.0,
@@ -66,88 +66,168 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "ig_comments_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "ig_interactions_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "ig_likes_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "ig_publish_7d_fail": {
       "value": 0.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "ig_publish_7d_success": {
       "value": 2.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "ig_reach_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "ig_saved_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 07:53:33"
+      "collected_at": "2026-05-11 08:01:41"
     },
     "lens_reviews_count": {
       "value": 0.0,
       "unit": "count",
       "source": "lens_reports",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "memoria_articles_count": {
       "value": 3.0,
       "unit": "count",
       "source": "vocab_flashcards_blog_posts",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "memoria_progress_pct": {
       "value": 15.789473684210526,
       "unit": "percentage",
       "source": "vocab_flashcards_blog_posts",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "threads_publish_7d_fail": {
       "value": 0.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
     },
     "threads_publish_7d_success": {
       "value": 0.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_active_subscriptions": {
+      "value": 1.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_avg_ltv_twd": {
+      "value": 299.0,
+      "unit": "TWD",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_dau_1d": {
+      "value": 0.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_mau_30d": {
+      "value": 2.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_new_users_7d": {
+      "value": 2.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_paying_users": {
+      "value": 1.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
     },
     "v1_subscribers_count": {
       "value": 2.0,
       "unit": "count",
       "source": "v1_subscribers_json",
-      "collected_at": "2026-05-11 07:53:28"
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_total_ltv_twd": {
+      "value": 299.0,
+      "unit": "TWD",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_total_profiles": {
+      "value": 2.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
+    },
+    "v1_wau_7d": {
+      "value": 2.0,
+      "unit": "count",
+      "source": "v1_customer_profile_json",
+      "collected_at": "2026-05-11 08:01:36"
     }
   },
   "recent_events": [
+    {
+      "id": 17,
+      "event_type": "publish_fail",
+      "severity": "warning",
+      "message": "7 天內有 3 次 publish 失敗",
+      "data": {
+        "total": 8,
+        "success": 5,
+        "fail": 3,
+        "by_platform": {
+          "fb": {
+            "success": 3,
+            "fail": 3
+          },
+          "ig": {
+            "success": 2,
+            "fail": 0
+          },
+          "threads": {
+            "success": 0,
+            "fail": 0
+          }
+        }
+      },
+      "created_at": "2026-05-11 08:01:36"
+    },
     {
       "id": 16,
       "event_type": "publish_fail",
