@@ -32,6 +32,7 @@ import json
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -53,6 +54,13 @@ LENS_REPORTS_PATH = Path(
     os.getenv("LENS_REPORTS_PATH", "C:/Alex/Github/nexus-academy-memoria/docs/lens-reports")
 )
 SQLITE_PATH = Path(os.getenv("SQLITE_PATH", str(SCRIPT_DIR / "aegis_cache.db")))
+CACHE_JSON_PATH = SCRIPT_DIR / "aegis_cache.json"
+
+# Phase 1.5 cache sync(git auto-push 給 Render)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
+GITHUB_OWNER = os.getenv("GITHUB_OWNER", "AlexLee1120")
+GITHUB_REPO = os.getenv("GITHUB_REPO", "nexus-academy-aegis")
+GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main")
 
 
 # ─────────────────────────────────────────────────────
@@ -180,6 +188,133 @@ def fetch_lens_reports_count() -> int:
 
 
 # ─────────────────────────────────────────────────────
+# Phase 1.5: Cache sync(SQLite → cache.json → git push 給 Render)
+# ─────────────────────────────────────────────────────
+
+def export_cache_to_json(conn: sqlite3.Connection) -> dict:
+    """從 SQLite query latest metrics + recent events,組成 cache.json schema
+    給 Render dashboard 直接 read(避免 Render 環境讀不到 Windows local files)"""
+    cur = conn.cursor()
+
+    # 拿每個 metric 的最新 value
+    cur.execute(
+        """
+        SELECT metric_name, value, unit, source, MAX(collected_at) as collected_at
+        FROM metrics
+        GROUP BY metric_name
+        """
+    )
+    latest_metrics = {}
+    for row in cur.fetchall():
+        name, value, unit, source, collected_at = row
+        latest_metrics[name] = {
+            "value": value,
+            "unit": unit,
+            "source": source,
+            "collected_at": collected_at,
+        }
+
+    # 拿過去 7 天 events
+    cutoff = (datetime.now() - timedelta(days=7)).isoformat()
+    cur.execute(
+        """
+        SELECT id, event_type, severity, message, data_json, created_at
+        FROM events
+        WHERE created_at >= ?
+        ORDER BY created_at DESC
+        LIMIT 50
+        """,
+        (cutoff,),
+    )
+    events = []
+    for row in cur.fetchall():
+        eid, etype, sev, msg, data_json, created = row
+        try:
+            data = json.loads(data_json or "{}")
+        except Exception:
+            data = {}
+        events.append({
+            "id": eid,
+            "event_type": etype,
+            "severity": sev,
+            "message": msg,
+            "data": data,
+            "created_at": created,
+        })
+
+    return {
+        "schema_version": "1.5.0",
+        "exported_at": datetime.now().isoformat(),
+        "latest_metrics": latest_metrics,
+        "recent_events": events,
+    }
+
+
+def write_cache_json(cache_data: dict, dry_run: bool = False):
+    """把 cache_data 寫到 aegis_cache.json"""
+    if dry_run:
+        print(f"   [dry-run] 會寫 {CACHE_JSON_PATH}({len(cache_data['latest_metrics'])} metrics, {len(cache_data['recent_events'])} events)")
+        return
+    CACHE_JSON_PATH.write_text(
+        json.dumps(cache_data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"   ✅ aegis_cache.json 寫好({CACHE_JSON_PATH})")
+
+
+def git_push_cache(dry_run: bool = False):
+    """git auto-commit + push aegis_cache.json 上 GitHub
+    用 PAT 透過 HTTPS push,token 不寫進 git config"""
+    if dry_run:
+        print(f"   [dry-run] 會跑 git add aegis_cache.json + commit + push")
+        return
+
+    if not GITHUB_TOKEN:
+        print(f"   ⚠️  GITHUB_TOKEN 沒設,skip git push(本地測試 OK,production 要設)")
+        return
+
+    cwd = SCRIPT_DIR
+
+    def run(args: list, check: bool = True):
+        result = subprocess.run(
+            ["git"] + args, cwd=str(cwd), capture_output=True, text=True, encoding="utf-8"
+        )
+        if check and result.returncode != 0:
+            safe_stderr = result.stderr.replace(GITHUB_TOKEN, "***TOKEN***")
+            print(f"   ❌ git {' '.join(args[:2])} failed: {safe_stderr[:300]}")
+            sys.exit(1)
+        return result.stdout, result.stderr, result.returncode
+
+    # 1. Add cache.json
+    run(["add", "aegis_cache.json"])
+    print(f"   ✅ git add aegis_cache.json")
+
+    # 2. Commit(若無變動 skip)
+    stdout, stderr, rc = run(["commit", "-m", f"chore(cache): auto update {datetime.now().strftime('%Y-%m-%d %H:%M')}"], check=False)
+    if rc != 0:
+        if "nothing to commit" in (stdout + stderr):
+            print(f"   ℹ️  cache.json 無變動,skip commit + push")
+            return
+        else:
+            print(f"   ❌ git commit failed: {stderr[:300]}")
+            sys.exit(1)
+    print(f"   ✅ git commit")
+
+    # 3. pull --rebase --autostash(避免 fetch first error)
+    push_url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_OWNER}/{GITHUB_REPO}.git"
+    run(["pull", "--rebase", "--autostash", push_url, GITHUB_BRANCH], check=False)
+
+    # 4. Push
+    stdout, stderr, rc = run(["push", push_url, GITHUB_BRANCH], check=False)
+    if rc != 0:
+        safe_stderr = stderr.replace(GITHUB_TOKEN, "***TOKEN***")
+        print(f"   ❌ git push failed: {safe_stderr[:300]}")
+        print(f"   提示:確認 PAT scope 包含 {GITHUB_OWNER}/{GITHUB_REPO} repo Contents=Read and write")
+        sys.exit(1)
+    print(f"   ✅ git push origin {GITHUB_BRANCH}")
+    print(f"   → Render 5 分鐘內 auto-redeploy 拿最新 cache.json")
+
+
+# ─────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────
 
@@ -257,13 +392,26 @@ def main():
     print(f"   ✅ {lens_count} 份 weekly-review-W*.md")
     insert_metric(conn, "lens_reviews_count", float(lens_count), "count", "lens_reports", dry_run=args.dry_run)
 
-    # ── Commit
+    # ── Commit SQLite
     if not args.dry_run:
         conn.commit()
-        conn.close()
         print(f"\n✅ SQLite cache 更新完成: {SQLITE_PATH}")
     else:
         print("\n🛑 dry-run 模式 ── 沒寫 SQLite")
+
+    # ── Phase 1.5:Export cache.json + git push 給 Render
+    print()
+    print("─" * 70)
+    print("Phase 1.5: Cache sync(SQLite → cache.json → git push 給 Render)")
+    print("─" * 70)
+
+    if conn is not None:
+        cache_data = export_cache_to_json(conn)
+        write_cache_json(cache_data, dry_run=args.dry_run)
+        git_push_cache(dry_run=args.dry_run)
+        conn.close()
+    else:
+        print("   (dry-run 模式 ── 沒生 cache.json,沒 push)")
 
     print()
     print("=" * 70)

@@ -1,11 +1,16 @@
 # 機敏環境變數
 .env
 
-# SQLite cache(每次 cron 重生)
+# SQLite cache(本地用,不進 git)
 aegis_cache.db
 *.db-journal
 *.db-shm
 *.db-wal
+
+# 注意:aegis_cache.json 故意進 git(Phase 1.5 cache sync 機制)
+# Cowork cron 每天 06:00 寫入 + git push 上 GitHub
+# Render 啟動時 git pull 拿最新 cache.json
+# 所以 aegis_cache.json 不在 .gitignore!
 
 # Python
 __pycache__/

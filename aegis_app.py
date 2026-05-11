@@ -37,6 +37,7 @@ load_dotenv(SCRIPT_DIR / ".env")
 AEGIS_USERNAME = os.getenv("AEGIS_USERNAME", "alex")
 AEGIS_PASSWORD = os.getenv("AEGIS_PASSWORD", "")
 SQLITE_PATH = Path(os.getenv("SQLITE_PATH", str(SCRIPT_DIR / "aegis_cache.db")))
+CACHE_JSON_PATH = SCRIPT_DIR / "aegis_cache.json"  # Phase 1.5: cache sync 主來源
 
 app = Flask(__name__, template_folder=str(SCRIPT_DIR / "templates"))
 
@@ -145,35 +146,70 @@ def get_recent_events(days: int = 7, limit: int = 50) -> list:
 
 
 # ─────────────────────────────────────────────────────
+# Phase 1.5: Cache JSON read(Render 上 cache.json 優先)
+# ─────────────────────────────────────────────────────
+
+def read_cache_json() -> dict | None:
+    """從 aegis_cache.json read(Phase 1.5 cache sync 主來源).
+    return None if 檔案不存在 / parse 失敗 → fallback SQLite"""
+    if not CACHE_JSON_PATH.exists():
+        return None
+    try:
+        return json.loads(CACHE_JSON_PATH.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"⚠️  read aegis_cache.json failed: {e},fallback SQLite")
+        return None
+
+
+def get_metric_from_cache_or_sqlite(cache: dict | None, metric_name: str) -> dict | None:
+    """從 cache.json 取最新 metric,沒有 fallback SQLite"""
+    if cache:
+        m = cache.get("latest_metrics", {}).get(metric_name)
+        if m:
+            return m
+    return get_latest_metric(metric_name)
+
+
+# ─────────────────────────────────────────────────────
 # Dashboard data 組裝
 # ─────────────────────────────────────────────────────
 
 def build_dashboard_data() -> dict:
-    """組 dashboard 顯示用的 data dict"""
+    """組 dashboard 顯示用的 data dict
+    Phase 1.5:優先 read aegis_cache.json(Render 上有);fallback SQLite(本地測試)"""
+    cache = read_cache_json()
+    cache_source = "aegis_cache.json(Phase 1.5 cache sync)" if cache else "SQLite local"
+
     # ── KPI cards
-    v1_subs = get_latest_metric("v1_subscribers_count")
-    memoria_articles = get_latest_metric("memoria_articles_count")
-    memoria_progress = get_latest_metric("memoria_progress_pct")
+    v1_subs = get_metric_from_cache_or_sqlite(cache, "v1_subscribers_count")
+    memoria_articles = get_metric_from_cache_or_sqlite(cache, "memoria_articles_count")
+    memoria_progress = get_metric_from_cache_or_sqlite(cache, "memoria_progress_pct")
 
     # ── 推波 7 天 stats
-    fb_success = get_latest_metric("fb_publish_7d_success")
-    fb_fail = get_latest_metric("fb_publish_7d_fail")
-    ig_success = get_latest_metric("ig_publish_7d_success")
-    ig_fail = get_latest_metric("ig_publish_7d_fail")
-    threads_success = get_latest_metric("threads_publish_7d_success")
-    threads_fail = get_latest_metric("threads_publish_7d_fail")
+    fb_success = get_metric_from_cache_or_sqlite(cache, "fb_publish_7d_success")
+    fb_fail = get_metric_from_cache_or_sqlite(cache, "fb_publish_7d_fail")
+    ig_success = get_metric_from_cache_or_sqlite(cache, "ig_publish_7d_success")
+    ig_fail = get_metric_from_cache_or_sqlite(cache, "ig_publish_7d_fail")
+    threads_success = get_metric_from_cache_or_sqlite(cache, "threads_publish_7d_success")
+    threads_fail = get_metric_from_cache_or_sqlite(cache, "threads_publish_7d_fail")
 
     # ── 系統健康
-    captions_count = get_latest_metric("buzz_captions_count")
-    lens_count = get_latest_metric("lens_reviews_count")
+    captions_count = get_metric_from_cache_or_sqlite(cache, "buzz_captions_count")
+    lens_count = get_metric_from_cache_or_sqlite(cache, "lens_reviews_count")
 
-    # ── Events
-    events = get_recent_events(days=7, limit=20)
+    # ── Events(優先 cache,否 SQLite)
+    if cache:
+        events = cache.get("recent_events", [])[:20]
+    else:
+        events = get_recent_events(days=7, limit=20)
 
-    # ── Last update timestamp
-    last_update = None
-    if v1_subs:
+    # ── Last update timestamp(優先 cache.exported_at)
+    if cache:
+        last_update = cache.get("exported_at", "(尚未)")
+    elif v1_subs:
         last_update = v1_subs.get("collected_at")
+    else:
+        last_update = "(尚未更新,跑 cron_update_cache.py)"
 
     def safe_value(metric: dict | None, default=0):
         if metric is None:
@@ -182,6 +218,7 @@ def build_dashboard_data() -> dict:
 
     return {
         "last_update": last_update or "(尚未更新,跑 cron_update_cache.py)",
+        "cache_source": cache_source,  # Phase 1.5:讓 dashboard 顯示資料來源
         "kpi": {
             "v1_subscribers": int(safe_value(v1_subs, 0)),
             "v2_subscriptions": "未啟用",
