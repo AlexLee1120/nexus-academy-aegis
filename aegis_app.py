@@ -232,9 +232,19 @@ def build_dashboard_data() -> dict:
 
     # ── Events(優先 cache,否 SQLite)
     if cache:
-        events = cache.get("recent_events", [])[:20]
+        events = cache.get("recent_events", [])[:50]
     else:
-        events = get_recent_events(days=7, limit=20)
+        events = get_recent_events(days=7, limit=50)
+
+    # 拆 events 成「2 天內 / 2 天前~7 天」兩組(by Alex Boss feedback 2026-05-11)
+    cutoff_2d = (datetime.now() - timedelta(days=2)).isoformat()
+    events_recent = []
+    events_older = []
+    for e in events:
+        if e.get("created_at", "") >= cutoff_2d:
+            events_recent.append(e)
+        else:
+            events_older.append(e)
 
     # ── Last update timestamp(優先 cache.exported_at)
     if cache:
@@ -303,7 +313,9 @@ def build_dashboard_data() -> dict:
                 "comments": int(safe_value(ig_comments, 0)),
             },
         },
-        "events": events,
+        "events": events,           # legacy,保留兼容 /api/metrics
+        "events_recent": events_recent,   # 過去 2 天(預設展開顯示)
+        "events_older": events_older,     # 2-7 天(摺疊收納)
     }
 
 

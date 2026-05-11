@@ -349,15 +349,22 @@
         <!-- Section 4: 異常 Alert(過去 7 天)          -->
         <!-- ─────────────────────────────────────────── -->
         <section>
-            <h2 class="text-lg font-semibold text-slate-700 mb-3">🚨 異常 alert(過去 7 天)</h2>
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">🚨 異常 alert(過去 2 天)</h2>
             <div class="bg-white rounded-lg shadow overflow-hidden">
-                {% if data.events|length == 0 %}
+                {% if data.events_recent|length == 0 and data.events_older|length == 0 %}
                 <div class="p-6 text-center text-slate-400">
                     ✅ 過去 7 天無異常事件
                 </div>
                 {% else %}
+
+                <!-- 過去 2 天(預設展開) -->
+                {% if data.events_recent|length == 0 %}
+                <div class="p-6 text-center text-slate-400">
+                    ✅ 過去 2 天無異常事件
+                </div>
+                {% else %}
                 <ul class="divide-y divide-slate-100">
-                    {% for event in data.events %}
+                    {% for event in data.events_recent %}
                     <li class="p-4 severity-{{ event.severity }}">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
@@ -373,6 +380,34 @@
                     </li>
                     {% endfor %}
                 </ul>
+                {% endif %}
+
+                <!-- 2-7 天(收納) -->
+                {% if data.events_older|length > 0 %}
+                <details class="border-t border-slate-100">
+                    <summary class="px-4 py-3 cursor-pointer text-sm text-slate-500 hover:bg-slate-50 select-none">
+                        ▸ 展開更早事件({{ data.events_older|length }} 筆,2-7 天前)
+                    </summary>
+                    <ul class="divide-y divide-slate-100">
+                        {% for event in data.events_older %}
+                        <li class="p-4 severity-{{ event.severity }}">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="font-medium text-slate-800">
+                                        [{{ event.severity }}] {{ event.event_type }}
+                                    </div>
+                                    <div class="text-sm text-slate-600 mt-1">{{ event.message }}</div>
+                                </div>
+                                <div class="text-xs text-slate-400 whitespace-nowrap ml-4">
+                                    {{ event.created_at[:16] }}
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                {% endif %}
+
                 {% endif %}
             </div>
         </section>
