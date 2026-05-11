@@ -1,0 +1,26 @@
+# 機敏環境變數
+.env
+
+# SQLite cache(每次 cron 重生)
+aegis_cache.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+*.log
