@@ -5,6 +5,70 @@
 
 ---
 
+## 2026-05-11(週一晚)── Phase 1.5 整套 Step 1-5 收尾
+
+> 同一天延續 Day 0(週日 deploy 完 Phase 1 MVP)── 連續 12+ 小時 sprint
+> Alex Boss 提 Phase 1.5 5 個 Step「整套都做」,對齊 Aegis 紅線「不取代決策、不誇大、不顯示 raw / per-user」
+
+### 已交付(LIVE on Render)
+
+| Step | 內容 | 狀態 | Commit |
+|---|---|---|---|
+| Step 1 | Cache sync(SQLite → cache.json → git push → Render auto-redeploy) | ✅ LIVE | `b291784` |
+| Step 2 | Meta Graph API public summary(FB likes/comments + IG fallback) | ✅ LIVE | `1fc853a` |
+| Step 3 | V1 customer_profile aggregate(MAU/WAU/DAU + Active Subs + LTV) | ✅ LIVE | (合 Step 4 一起 push) |
+| Step 4 | YouTube Data API v3(訂閱/累積觀看/7 天 uploads/views/likes) | ✅ LIVE | (合 Step 3 一起 push) |
+| Step 5 | GA4 nexus-academy.ai 站內流量 quick-links | ✅ LIVE(連結方案) | 本次 push |
+
+### Step 5 設計決策(by Alex Boss)
+
+GA4 + Service Account 在 Google UI 被 hard reject(known limitation:GA4 user management 跟 GCP IAM 是兩套不同 systems,GA4 拒絕非 Gmail email)。試了 Property 層 + Account 層都同樣 error「這個電子郵件與 Google 帳戶不符」。
+
+**Alex Boss 提的解法(超 elegant):** 既然 fetch 數據卡關,dashboard 上那個區塊就放個連結 quick-links 跳 GA4 即可。Aegis 不 fetch,當「導流面板」。
+
+**3 個 quick-links:**
+- 🟢 即時觀眾(realtime overview)
+- 📊 總覽報表(intelligenthome)
+- 🚦 流量來源(traffic acquisition)
+
+**Phase 2(2026 Q3 PostgreSQL 升級時)用 OAuth 2.0 installed app flow 重做:**
+- Alex 用自己 Gmail 跑一次 OAuth flow → 拿 refresh token 存 .env
+- cron 用 refresh token 永久 read GA4 Data API
+- 那時直接顯示 PV / UV / Sessions / Bounce / 流量來源 在 dashboard
+
+### 12 小時戰況濃縮
+
+**API 學習成本:**
+- Meta Graph API v25.0 大改 ── deprecated `shares` / `reactions.summary` / `permalink_url`(三個一個一個試出來),最後找到 `likes.summary(true)` + `comments.summary(true)` + `created_time` 是 stable trio
+- IG insights API 需要 `instagram_manage_insights` scope(沒有)→ fallback `/{media_id}?fields=like_count,comments_count`(用 `instagram_basic`)
+- YouTube Data API v3 quota 計算清楚:每 cron run 用 ~3 units / 10K daily quota = 0.03% 用量
+- GA4 service account 卡關 → Plan C 連結方案
+
+**真實數字(2026-05-11 16:53):**
+- V1 customer_profile: 2 profiles / MAU=2 / Paying=1 / LTV=NT$299
+- FB Page: 3 篇 / likes=0 / comments=0(新帳號未起量)
+- IG: 2 篇 / likes=0 / comments=0(同上)
+- YouTube Hina 星奈頻道: 訂閱 7 / 累積觀看 3,700 / 累積影片 24 / 7 天 9 部上傳 / 557 views / 1 like
+- GA4: 連結方案(quick-links 跳 GA4 後台)
+
+**Aegis 主場價值已建立:** Alex 早上喝咖啡開 dashboard,5 分鐘看完 V1 商業現況 + Meta + YouTube 真實數字 + GA4 一鍵跳 ── sleep at night 達成。
+
+### 接下來(下一次 Aegis session)
+
+- [ ] Phase 2 開動(優先級看 Alex):LINE Bot daily summary push(每天 06:00 cron 完成後 LINE 推一段 summary)
+- [ ] Phase 2:GA4 OAuth route(取代現在 Step 5 連結方案)
+- [ ] Phase 2:Cowork scheduled tasks health 監控(目前 cron 自己跑沒監控)
+- [ ] Phase 3:Buzz / Lens / Pact agents 實質 LIVE 後加真實 metric 進 dashboard
+
+### 跟其他 agents 的同步點
+
+- **Pact · 小盟:** Phase 1 spec 完成、Phase 1.5 affiliate event_types 對齊 V1 customer_profile API 已 ready,Phase 2 實作時加 affiliate metrics 進 dashboard
+- **Echo · 連載寫稿者:** 連載 W04 起 Memoria articles count 會自動更新(已自動掃 v3.5-w*.md)
+- **Buzz · 小波:** captions.json count 已自動掃,Buzz 真正 LIVE 後 dashboard 自動顯示
+- **Lens · 小鏡:** weekly-review-W*.md count 已自動掃,Lens 寫第一篇後 dashboard 自動顯示
+
+---
+
 ## 2026-05-11(週日)── Day 0:Aegis 專案啟動
 
 ### 完成

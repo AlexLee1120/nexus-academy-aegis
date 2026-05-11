@@ -262,6 +262,58 @@
         </section>
 
         <!-- ─────────────────────────────────────────── -->
+        <!-- Section 2.8: GA4 網站流量快速連結(Phase 1.5 Step 5) -->
+        <!-- 註:GA4 service account 被 Google UI reject -->
+        <!-- → Phase 2 OAuth route 重做。現階段提供快速跳轉入口。-->
+        <!-- ─────────────────────────────────────────── -->
+        <section>
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">🌐 nexus-academy.ai 網站流量(GA4)</h2>
+            <div class="bg-white rounded-lg shadow p-5 border-t-4 border-orange-500">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-700">Nexus Academy Production · GA4</div>
+                        <div class="text-xs text-slate-400 mt-1">Property ID: 534428855</div>
+                    </div>
+                    <span class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded">Phase 2 整合中</span>
+                </div>
+
+                <p class="text-xs text-slate-500 mb-4">
+                    GA4 對 service account 有 known limitation(Google UI 拒絕加非 Gmail email)── Phase 2(2026 Q3)用 OAuth route 重做後會直接顯示在這裡。<br>
+                    現階段請點下方連結跳 GA4 看詳細:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+                    <!-- 即時觀眾 -->
+                    <a href="https://analytics.google.com/analytics/web/#/p534428855/realtime/overview" target="_blank"
+                       class="block bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition border border-orange-200">
+                        <div class="text-2xl mb-2">🟢</div>
+                        <div class="text-sm font-semibold text-orange-700">即時觀眾</div>
+                        <div class="text-xs text-slate-500 mt-1">過去 30 分鐘活躍 user</div>
+                    </a>
+
+                    <!-- 過去 7 天參與度總覽 -->
+                    <a href="https://analytics.google.com/analytics/web/#/p534428855/reports/intelligenthome" target="_blank"
+                       class="block bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition border border-orange-200">
+                        <div class="text-2xl mb-2">📊</div>
+                        <div class="text-sm font-semibold text-orange-700">總覽報表</div>
+                        <div class="text-xs text-slate-500 mt-1">PV / UV / Sessions / Bounce</div>
+                    </a>
+
+                    <!-- 流量來源 -->
+                    <a href="https://analytics.google.com/analytics/web/#/p534428855/reports/explorer?params=_u..nav%3Dmaui%26_r.explorerCard..selmet%3D%5B%22sessions%22%5D&r=traffic-acquisition" target="_blank"
+                       class="block bg-orange-50 hover:bg-orange-100 rounded-lg p-4 text-center transition border border-orange-200">
+                        <div class="text-2xl mb-2">🚦</div>
+                        <div class="text-sm font-semibold text-orange-700">流量來源</div>
+                        <div class="text-xs text-slate-500 mt-1">direct / search / social</div>
+                    </a>
+
+                </div>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">資料來源:Google Analytics 4 ── 點擊 quick links 直接跳 GA4 後台。Phase 2 OAuth 整合後將在 Aegis 直接顯示 7 天 PV/UV/Sessions/流量來源/Bounce rate。</p>
+        </section>
+
+        <!-- ─────────────────────────────────────────── -->
         <!-- Section 3: Buzz / Lens 系統健康             -->
         <!-- ─────────────────────────────────────────── -->
         <section>

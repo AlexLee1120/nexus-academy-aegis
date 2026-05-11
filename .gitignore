@@ -1,6 +1,11 @@
 # 機敏環境變數
 .env
 
+# GA4 Service Account JSON(私鑰,絕對不能進 git!)
+service_account.json
+*-service-account.json
+*-iam.gserviceaccount.com.json
+
 # SQLite cache(本地用,不進 git)
 aegis_cache.db
 *.db-journal

@@ -148,9 +148,45 @@ Phase 2 如果要給 工程團隊 / 投資人 看 ── 升級到 token-based a
 
 ---
 
+## D13:Step 5 GA4 ── 改用 quick-links 連結方案(非 fetch)
+
+**拍板日:** 2026-05-11(by Alex Boss)
+**觸發:** Phase 1.5 Step 5 GA4 整合,service account 被 Google UI hard reject
+
+### 問題
+- GA4 Property + Account 兩層 access management UI 都 reject `aegis-ga4-reader@openclaw-workspace-487015.iam.gserviceaccount.com`
+- Error message:「這個電子郵件與 Google 帳戶不符」
+- 這是 Google known limitation:GA4 user management(認 Google Account)跟 GCP IAM(認 service account)是兩套不同 systems
+- Property ID `534428855` 已 confirm,GA Data API 已啟用,JSON key 已建,但卡在 user invite
+
+### 拍板:Plan C「連結方案」
+**Aegis dashboard 不 fetch GA4 數據,改放 3 個 quick-links 跳 GA4 後台:**
+1. 🟢 即時觀眾(realtime overview)
+2. 📊 總覽報表(intelligenthome)
+3. 🚦 流量來源(traffic acquisition)
+
+### 為什麼選連結方案(否決 OAuth route)
+- ✅ **零 over-engineer:** 不耗 1-2 小時走 OAuth flow + refresh token 管理
+- ✅ **對齊 Aegis 紅線「不誇大、不 mock」:** 既然 fetch 卡關,誠實告訴 dashboard reader 「點這裡看詳細」
+- ✅ **Alex 12 小時 sprint 收尾健康選擇**
+- ❌ 否決 OAuth installed app flow:複雜度高,Phase 2 PostgreSQL 升級時順便做
+- ❌ 否決 Google Group workaround:個人 Gmail 的 group 對 service account 接受度不確定,風險高
+
+### Phase 2 重做計畫(2026 Q3)
+- 用 OAuth 2.0 installed app flow:Alex 用自己 Gmail 跑一次授權 → refresh token 永久存 .env
+- cron 用 refresh token 直接 read GA4 Data API
+- dashboard 顯示 7 天 PV / UV / Sessions / Bounce / 流量來源 top 3
+
+### 廢棄資源(本地保留,GCP 留著)
+- `service_account.json` 在 aegis repo(`.gitignore` 保護不會 push)── Phase 2 OAuth 不需要,可選擇刪除
+- GCP IAM service account `aegis-ga4-reader@...` 留著(沒 active access,不費 quota)
+
+---
+
 ## 文件修訂歷程
 
 | 日期 | 版本 | 修訂者 | 內容 |
 |---|---|---|---|
 | 2026-05-11 | v1.0 | 主對話小 M | Aegis 初次拍板,對齊 Memoria session 5/10 五件事 |
-| (待) | v1.1 | Aegis 自己 | Phase 1 MVP LIVE 後 calibrate D3/D5/D6 |
+| 2026-05-11 晚 | v1.1 | 主對話小 M | 加 D13:Phase 1.5 Step 5 GA4 改連結方案(by Alex Boss) |
+| (待) | v1.2 | Aegis 自己 | Phase 1 MVP LIVE 後 calibrate D3/D5/D6 |
