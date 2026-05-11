@@ -39,11 +39,11 @@
             <h2 class="text-lg font-semibold text-slate-700 mb-3">📊 四大 KPI</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                <!-- V1 訂閱者 -->
+                <!-- V1 真實 MAU(Phase 1.5 Step 3) -->
                 <div class="bg-white rounded-lg shadow p-5 border-t-4 border-blue-500">
-                    <div class="text-sm text-slate-500 mb-1">V1 vocab-flashcards</div>
-                    <div class="text-3xl font-bold text-slate-800">{{ data.kpi.v1_subscribers }}</div>
-                    <div class="text-xs text-slate-400 mt-2">訂閱者(approximation,正式 MAU 待 Phase 2)</div>
+                    <div class="text-sm text-slate-500 mb-1">V1 MAU(過去 30 天)</div>
+                    <div class="text-3xl font-bold text-slate-800">{{ data.v1_business.mau_30d }}</div>
+                    <div class="text-xs text-slate-400 mt-2">總 profile {{ data.v1_business.total_profiles }} | WAU {{ data.v1_business.wau_7d }} | DAU {{ data.v1_business.dau_1d }}</div>
                 </div>
 
                 <!-- V2 -->
@@ -73,6 +73,45 @@
                 </div>
 
             </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────── -->
+        <!-- Section 1.5: V1 商業現況(Phase 1.5 Step 3)-->
+        <!-- ─────────────────────────────────────────── -->
+        <section>
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">💼 V1 商業現況(customer_profile aggregate)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <!-- Active Subscriptions -->
+                <div class="bg-white rounded-lg shadow p-5 border-t-4 border-emerald-500">
+                    <div class="text-sm text-slate-500 mb-1">活躍訂閱</div>
+                    <div class="text-3xl font-bold text-emerald-700">{{ data.v1_business.active_subscriptions }}</div>
+                    <div class="text-xs text-slate-400 mt-2">subscription_status = active / converted</div>
+                </div>
+
+                <!-- Paying Users -->
+                <div class="bg-white rounded-lg shadow p-5 border-t-4 border-orange-500">
+                    <div class="text-sm text-slate-500 mb-1">付費用戶</div>
+                    <div class="text-3xl font-bold text-orange-700">{{ data.v1_business.paying_users }}</div>
+                    <div class="text-xs text-slate-400 mt-2">total_orders &gt; 0(歷史付費過)</div>
+                </div>
+
+                <!-- Total LTV -->
+                <div class="bg-white rounded-lg shadow p-5 border-t-4 border-yellow-500">
+                    <div class="text-sm text-slate-500 mb-1">總 LTV</div>
+                    <div class="text-3xl font-bold text-yellow-700">NT${{ "{:,}".format(data.v1_business.total_ltv_twd) }}</div>
+                    <div class="text-xs text-slate-400 mt-2">人均:NT${{ "{:,}".format(data.v1_business.avg_ltv_twd) }} / 付費用戶</div>
+                </div>
+
+                <!-- New Users 7d -->
+                <div class="bg-white rounded-lg shadow p-5 border-t-4 border-cyan-500">
+                    <div class="text-sm text-slate-500 mb-1">新增用戶(過去 7 天)</div>
+                    <div class="text-3xl font-bold text-cyan-700">+{{ data.v1_business.new_users_7d }}</div>
+                    <div class="text-xs text-slate-400 mt-2">created_at &gt;= now-7d</div>
+                </div>
+
+            </div>
+            <p class="text-xs text-slate-400 mt-2">資料來源:V1 vocab-flashcards customer_profile.json(aggregate only,不顯示 raw / per-user)── Aegis 紅線「不洩個資」對齊</p>
         </section>
 
         <!-- ─────────────────────────────────────────── -->

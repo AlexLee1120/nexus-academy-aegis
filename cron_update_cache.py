@@ -110,7 +110,7 @@ def insert_event(
 # ─────────────────────────────────────────────────────
 
 def fetch_v1_subscribers_count() -> int:
-    """讀 V1 subscribers.json 算 active 訂閱者"""
+    """讀 V1 subscribers.json 算 active 訂閱者(legacy ── Phase 1.5 Step 3 後升級成 customer_profile)"""
     path = V1_REPO_PATH / "subscribers.json"
     if not path.exists():
         return -1
@@ -124,6 +124,98 @@ def fetch_v1_subscribers_count() -> int:
         return -1
     except Exception:
         return -1
+
+
+def fetch_v1_customer_profile_stats() -> dict:
+    """讀 V1 customer_profile.json 算 aggregate 商業 metrics(Phase 1.5 Step 3 真實 MAU)
+    Aegis 紅線:只 aggregate,不顯示 raw / per-user。
+
+    return:
+    {
+        "total_profiles": N,         # 全 customer 數
+        "mau_30d": N,                # 過去 30 天 last_active_at active
+        "wau_7d": N,                 # 過去 7 天 last_active_at active
+        "dau_1d": N,                 # 過去 1 天 last_active_at active
+        "paying_users": N,           # total_orders > 0
+        "active_subscriptions": N,   # subscription_status in ['active','converted']
+        "total_ltv_twd": N,          # sum(lifetime_value_twd)
+        "new_users_7d": N,           # 過去 7 天 created_at
+        "avg_ltv_twd": N,            # total_ltv / paying_users
+    }"""
+    path = V1_REPO_PATH / "customer_profile.json"
+    if not path.exists():
+        return {"_error": f"customer_profile.json 不存在於 {path}"}
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        return {"_error": f"customer_profile.json parse 失敗: {str(e)[:100]}"}
+
+    profiles = data.get("profiles", [])
+    if not isinstance(profiles, list):
+        return {"_error": "customer_profile.json schema 異常(profiles 不是 list)"}
+
+    now = datetime.now()
+    cutoff_30d = now - timedelta(days=30)
+    cutoff_7d = now - timedelta(days=7)
+    cutoff_1d = now - timedelta(days=1)
+
+    total = len(profiles)
+    mau = wau = dau = 0
+    paying = 0
+    active_subs = 0
+    total_ltv = 0
+    new_7d = 0
+
+    for p in profiles:
+        # MAU / WAU / DAU
+        last_active = p.get("last_active_at")
+        if last_active:
+            try:
+                ts = datetime.fromisoformat(last_active)
+                if ts >= cutoff_30d:
+                    mau += 1
+                if ts >= cutoff_7d:
+                    wau += 1
+                if ts >= cutoff_1d:
+                    dau += 1
+            except Exception:
+                pass
+
+        # Paying / Active Subs / LTV
+        if (p.get("total_orders") or 0) > 0:
+            paying += 1
+        if p.get("subscription_status") in ("active", "converted"):
+            active_subs += 1
+        ltv = p.get("lifetime_value_twd") or 0
+        try:
+            total_ltv += int(ltv)
+        except Exception:
+            pass
+
+        # New users 7d
+        created_at = p.get("created_at")
+        if created_at:
+            try:
+                ts = datetime.fromisoformat(created_at)
+                if ts >= cutoff_7d:
+                    new_7d += 1
+            except Exception:
+                pass
+
+    avg_ltv = (total_ltv / paying) if paying > 0 else 0
+
+    return {
+        "total_profiles": total,
+        "mau_30d": mau,
+        "wau_7d": wau,
+        "dau_1d": dau,
+        "paying_users": paying,
+        "active_subscriptions": active_subs,
+        "total_ltv_twd": total_ltv,
+        "new_users_7d": new_7d,
+        "avg_ltv_twd": round(avg_ltv, 1),
+    }
 
 
 def fetch_memoria_blog_articles_count() -> int:
@@ -575,8 +667,8 @@ def main():
     else:
         conn = None
 
-    # ── 1. V1 subscribers
-    print("📊 1. V1 subscribers count")
+    # ── 1. V1 subscribers(legacy backup ── 新版用 v1_total_profiles)
+    print("📊 1. V1 subscribers count(legacy)")
     v1_subs = fetch_v1_subscribers_count()
     if v1_subs < 0:
         print("   ⚠️  讀不到 V1 subscribers.json")
@@ -588,6 +680,32 @@ def main():
     else:
         print(f"   ✅ {v1_subs} 訂閱者")
         insert_metric(conn, "v1_subscribers_count", float(v1_subs), "count", "v1_subscribers_json", dry_run=args.dry_run)
+
+    # ── 1.5 V1 customer_profile aggregate stats(Phase 1.5 Step 3 真實 MAU + 商業現況)
+    print("\n📊 1.5 V1 customer_profile 商業現況(Phase 1.5 Step 3)")
+    cp_stats = fetch_v1_customer_profile_stats()
+    if "_error" in cp_stats:
+        print(f"   ⚠️  {cp_stats['_error']}")
+        insert_event(
+            conn, "fetch_fail", "warning",
+            f"V1 customer_profile.json 讀取失敗: {cp_stats['_error']}", {"source": str(V1_REPO_PATH)},
+            dry_run=args.dry_run,
+        )
+    else:
+        print(f"   ✅ Total profiles: {cp_stats['total_profiles']}")
+        print(f"   ✅ MAU(30d): {cp_stats['mau_30d']} | WAU(7d): {cp_stats['wau_7d']} | DAU(1d): {cp_stats['dau_1d']}")
+        print(f"   ✅ Paying users: {cp_stats['paying_users']} | Active subs: {cp_stats['active_subscriptions']}")
+        print(f"   ✅ Total LTV: NT${cp_stats['total_ltv_twd']:,} | Avg LTV/payer: NT${cp_stats['avg_ltv_twd']:,.0f}")
+        print(f"   ✅ New users 7d: {cp_stats['new_users_7d']}")
+        insert_metric(conn, "v1_total_profiles", float(cp_stats["total_profiles"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_mau_30d", float(cp_stats["mau_30d"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_wau_7d", float(cp_stats["wau_7d"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_dau_1d", float(cp_stats["dau_1d"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_paying_users", float(cp_stats["paying_users"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_active_subscriptions", float(cp_stats["active_subscriptions"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_total_ltv_twd", float(cp_stats["total_ltv_twd"]), "TWD", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_avg_ltv_twd", float(cp_stats["avg_ltv_twd"]), "TWD", "v1_customer_profile_json", dry_run=args.dry_run)
+        insert_metric(conn, "v1_new_users_7d", float(cp_stats["new_users_7d"]), "count", "v1_customer_profile_json", dry_run=args.dry_run)
 
     # ── 2. Memoria blog articles
     print("\n📊 2. Memoria 連載文章數")

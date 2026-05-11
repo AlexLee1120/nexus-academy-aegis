@@ -185,6 +185,17 @@ def build_dashboard_data() -> dict:
     memoria_articles = get_metric_from_cache_or_sqlite(cache, "memoria_articles_count")
     memoria_progress = get_metric_from_cache_or_sqlite(cache, "memoria_progress_pct")
 
+    # ── Phase 1.5 Step 3: V1 customer_profile aggregate(真實 MAU + 商業現況)
+    v1_total_profiles = get_metric_from_cache_or_sqlite(cache, "v1_total_profiles")
+    v1_mau = get_metric_from_cache_or_sqlite(cache, "v1_mau_30d")
+    v1_wau = get_metric_from_cache_or_sqlite(cache, "v1_wau_7d")
+    v1_dau = get_metric_from_cache_or_sqlite(cache, "v1_dau_1d")
+    v1_paying = get_metric_from_cache_or_sqlite(cache, "v1_paying_users")
+    v1_active_subs = get_metric_from_cache_or_sqlite(cache, "v1_active_subscriptions")
+    v1_total_ltv = get_metric_from_cache_or_sqlite(cache, "v1_total_ltv_twd")
+    v1_avg_ltv = get_metric_from_cache_or_sqlite(cache, "v1_avg_ltv_twd")
+    v1_new_7d = get_metric_from_cache_or_sqlite(cache, "v1_new_users_7d")
+
     # ── 推波 7 天 stats
     fb_success = get_metric_from_cache_or_sqlite(cache, "fb_publish_7d_success")
     fb_fail = get_metric_from_cache_or_sqlite(cache, "fb_publish_7d_fail")
@@ -238,6 +249,17 @@ def build_dashboard_data() -> dict:
             "memoria_articles": int(safe_value(memoria_articles, 0)),
             "memoria_progress_pct": round(safe_value(memoria_progress, 0), 1),
             "pact_status": "Phase 1.5 pending",
+        },
+        "v1_business": {
+            "total_profiles": int(safe_value(v1_total_profiles, 0)),
+            "mau_30d": int(safe_value(v1_mau, 0)),
+            "wau_7d": int(safe_value(v1_wau, 0)),
+            "dau_1d": int(safe_value(v1_dau, 0)),
+            "paying_users": int(safe_value(v1_paying, 0)),
+            "active_subscriptions": int(safe_value(v1_active_subs, 0)),
+            "total_ltv_twd": int(safe_value(v1_total_ltv, 0)),
+            "avg_ltv_twd": int(safe_value(v1_avg_ltv, 0)),
+            "new_users_7d": int(safe_value(v1_new_7d, 0)),
         },
         "publish_7day": {
             "fb": {"success": int(safe_value(fb_success)), "fail": int(safe_value(fb_fail))},
