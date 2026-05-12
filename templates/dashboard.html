@@ -349,7 +349,7 @@
         <!-- Section 4: 異常 Alert(過去 7 天)          -->
         <!-- ─────────────────────────────────────────── -->
         <section>
-            <h2 class="text-lg font-semibold text-slate-700 mb-3">🚨 異常 alert(過去 2 天)</h2>
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">🚨 異常 alert(最新 3 筆)</h2>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 {% if data.events_recent|length == 0 and data.events_older|length == 0 %}
                 <div class="p-6 text-center text-slate-400">
@@ -357,10 +357,10 @@
                 </div>
                 {% else %}
 
-                <!-- 過去 2 天(預設展開) -->
+                <!-- 最新 3 筆(預設展開) -->
                 {% if data.events_recent|length == 0 %}
                 <div class="p-6 text-center text-slate-400">
-                    ✅ 過去 2 天無異常事件
+                    ✅ 過去 7 天無異常事件
                 </div>
                 {% else %}
                 <ul class="divide-y divide-slate-100">
@@ -382,11 +382,11 @@
                 </ul>
                 {% endif %}
 
-                <!-- 2-7 天(收納) -->
+                <!-- 其他事件(收納) -->
                 {% if data.events_older|length > 0 %}
                 <details class="border-t border-slate-100">
                     <summary class="px-4 py-3 cursor-pointer text-sm text-slate-500 hover:bg-slate-50 select-none">
-                        ▸ 展開更早事件({{ data.events_older|length }} 筆,2-7 天前)
+                        ▸ 展開更早事件({{ data.events_older|length }} 筆,過去 7 天內)
                     </summary>
                     <ul class="divide-y divide-slate-100">
                         {% for event in data.events_older %}

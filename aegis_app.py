@@ -236,15 +236,12 @@ def build_dashboard_data() -> dict:
     else:
         events = get_recent_events(days=7, limit=50)
 
-    # 拆 events 成「2 天內 / 2 天前~7 天」兩組(by Alex Boss feedback 2026-05-11)
-    cutoff_2d = (datetime.now() - timedelta(days=2)).isoformat()
-    events_recent = []
-    events_older = []
-    for e in events:
-        if e.get("created_at", "") >= cutoff_2d:
-            events_recent.append(e)
-        else:
-            events_older.append(e)
+    # 拆 events 成「最新 3 筆顯示 / 其他收納」(by Alex Boss feedback 2026-05-12)
+    # 改自原本的「2 天內 / 2 天前」── 因為 events 都集中在 cron 跑當下,按時間切沒效果
+    # 純按筆數切才能保證 dashboard 每次都簡潔
+    RECENT_LIMIT = 3
+    events_recent = events[:RECENT_LIMIT]
+    events_older = events[RECENT_LIMIT:]
 
     # ── Last update timestamp(優先 cache.exported_at)
     if cache:
