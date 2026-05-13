@@ -5,6 +5,79 @@
 
 ---
 
+## 2026-05-13(週三)── Sprint A Day 1 完整 LIVE
+
+> **Nexus Academy 第一次完整漏斗接通的日子。**
+> 從早上「Aegis dashboard 顯示 0 lead magnet / 0 真實外部用戶」到下午「PDF 上線 + Channel banner LIVE + 5 部影片 description+pin LIVE」── 1 天搞定。
+
+### 已交付清單(全 LIVE)
+
+| Step | 內容 | 狀態 | 位置 |
+|---|---|---|---|
+| **Aegis** | alert UX 改最新 3 筆 + 收納(by Alex feedback) | ✅ LIVE | aegis commit `1b250ad` |
+| **Sprint A spec** | 整合版 v1 spec(含字圖整合) | ✅ Live | memoria docs/sprints/sprint-A-youtube-funnel-fix.md |
+| **D5 PDF** | 動漫場景記憶 100 字圖鑑 v1(80 頁 + 動漫化例句) | ✅ LIVE | Google Drive 公開 URL |
+| **D8 Helper scripts** | preview_a_grade / build_100words / generate_examples / simplify_pos / copy_100words_images | ✅ LIVE | memoria scripts/ |
+| **D3 Channel banner** | Hina + 「動漫英文學姊」+ CTA 按鈕 | ✅ LIVE | YouTube channel |
+| **D4 About page** | 完整品牌敘事 + 5,778 字 + 動漫場景記憶法 | ✅ LIVE | YouTube about |
+| **Channel links** | 4 個 CTA(試學/故事/PDF/Discord) | ✅ LIVE | YouTube channel link |
+| **D1 影片 description** | 5 部高觀看影片更新 CTA 模板 | ✅ LIVE | YouTube 5 部 |
+| **D2 Pin comment** | 5 部影片置頂留言 + PDF download CTA | ✅ LIVE | YouTube 5 部 |
+
+### 漏斗完整接通(從 0 到 1)
+
+```
+YouTube Shorts 觀眾
+    ↓ Description / Pin Comment / Channel Banner CTA
+Google Drive 公開 PDF(任何人不用登入)
+    ↓ Discord 邀請 / nexus-academy.ai 試學
+留住觀眾 → 進 Discord / 試學註冊
+    ↓
+V1 customer_profile.json 多 1 個外部 user(真實第一個)
+    ↓ Aegis dashboard 反映
+真實流量 metric 出現
+```
+
+### 真實 metric snapshot(Day 1 結束時)
+
+- YouTube 訂閱:7(待 14d 後看是否 +8 → 15+ target)
+- YouTube 累積觀看:3,700+
+- YouTube 7 天觀看:557(daily upload pipeline 持續跑)
+- conflict 影片留言驗證:粉絲說「Conflict 原來 con 是一起的意思 🤔」── **真實學到了!IP hook 起作用**
+- 100 字圖鑑 PDF download:0 → 待 14d review
+- V1 customer_profile 外部用戶:0 → 待 14d review
+
+### 學到的事(寫進記憶)
+
+**設計 +工程經驗:**
+- Canva Bulk Create 對「文字 100% 自動套」,「圖片不會自動換」── 必須 plan
+- Google Drive 公開分享連結最佳實踐:用 `view?usp=sharing` mode(觀眾預覽 + 可下載),避免 direct download 24MB PDF 觸發 virus scan warning
+- GitHub raw URL 對 private repo 手機不能下載 ── 重要 lead magnet 必須走 Google Drive / Cloudflare R2 / 公開 storage
+
+**商業 + IP 經驗:**
+- master_premium.csv 只有 381 字,A 級內 only 77 字 ── 不夠 PDF 100 字
+- 改用 AI 生「動漫化例句 + 中譯 + 中文解釋」+ Hina/Ren 角色出場 → Claude Haiku 4.5 cost $0.0664 USD / 100 字,可重複生成
+- Aegis dashboard 紅線「不為好看加假數據」對齊:Sprint A v1 ship 80 頁(Canva trial 限制) + 圖片同一張(Bulk Create 限制)── 都誠實接受
+- 「英」box 殘留:Canva 設計檔之間複製貼上要小心,debug 時要看完整 layout
+
+### Sprint A 14 天 review(2026-05-27)
+
+由 Lens · 小鏡 動手寫 weekly review,分析:
+- 5 部影片 description / pin comment 改造後 → 訂閱率變化
+- PDF download 真實數據(Google Drive analytics)
+- Discord 新成員數
+- 14 天後 Pass / Fail 決定 Sprint B 啟動
+
+### 下一步(下次 Alex 動工)
+
+- [ ] **Sprint B:統一 link-in-bio**(半天 ── nexus-academy.ai/links 統一 landing page)
+- [ ] **Sprint C:社會證明建立**(1 天 ── testimonial 收集)
+- [ ] **Lens 寫 Sprint A Week 1 review**(2026-05-20)
+- [ ] **Aegis Phase 2:GA4 OAuth route**(取代現在 quick-links 方案)
+- [ ] **D5 PDF v2:圖片真的換成各 word 對應字圖**(70 min 苦工,但可 deferred to 2 週後 iterate)
+
+---
+
 ## 2026-05-11(週一晚)── Phase 1.5 整套 Step 1-5 收尾
 
 > 同一天延續 Day 0(週日 deploy 完 Phase 1 MVP)── 連續 12+ 小時 sprint
