@@ -47,6 +47,34 @@ V1 customer_profile.json 多 1 個外部 user(真實第一個)
 - 100 字圖鑑 PDF download:0 → 待 14d review
 - V1 customer_profile 外部用戶:0 → 待 14d review
 
+### V1 video pipeline 整合(by 小小星 5/13 anchor 確認)
+
+| Q | 答案 |
+|---|---|
+| daily_publish 觸發 | Win Task Scheduler(Alex 本機,07:30 / 11:30 / 16:30)|
+| 字圖跨 repo 路徑 | 絕對路徑 OK,不 copy 5GB(保留 env var WORD_IMAGES_V2_DIR 給未來) |
+| 24 部 backfill | Deferred 到 5/24-5/27 看數據再決定 |
+| Queue 真實數字 | **87 支已 render 未上傳**(106 rendered - 19 published) |
+| render_all 觸發 | 手動(Alex 5/14 跑) |
+
+### OAuth fix(by 小小星 5/13 12:00)
+
+5/13 早 7:30 token 過期 traceback ── 根因 `get_youtube_client()` 只設計「refresh fail 就 exit」沒 fallback 進 OAuth flow。
+
+**正確修法:**
+1. 刪 `auth/token.json`
+2. 跑 `python auth_setup.py`(dedicated re-OAuth,跳瀏覽器)
+
+Alex 5/13 12:00 完成,daily_publish 跑通切了 reliable,publish_log 19 → 20。
+
+**5/14 起 Win Task Scheduler 自動跑(7:30 / 11:30 / 16:30)。**
+
+### Queue 消化時程預估
+
+- 87 支 / 3 支每天 = **29 天用完(~6/11)**
+- 觀察期 14 天(5/14-5/27)完全在 queue buffer 內 ── 不擋
+- 5/24-5/27 Lens review 看新影片(5/14 起 render)conversion vs 舊 24 部
+
 ### 學到的事(寫進記憶)
 
 **設計 +工程經驗:**
