@@ -5,6 +5,53 @@
 
 ---
 
+## 2026-05-14(週四)── Meta auto publish 修復 + 3 條 pipeline 全本機化
+
+> Alex 發現 IG/FB 只有 2 貼文沒繼續自動上架。Debug 後修完。
+
+### Root cause:Cowork sandbox proxy 擋 Meta API
+
+- `meta-publish-evening` Cowork scheduled task 在 sandbox 跑 → proxy 擋 `graph.facebook.com` → ProxyError 403
+- 對比 V1 daily_publish 在本機 Win Task Scheduler 跑 → 從不撞 proxy
+- 5/10-5/11 IG 成功 2 篇 = Alex 手動本機跑;5/13 起 fail = Cowork task 自動跑
+
+### 修復內容
+
+| 項目 | 內容 |
+|---|---|
+| Cowork task `meta-publish-evening` | ✅ Disabled(改本機跑) |
+| `auto_publish_meta_runner.bat` | ✅ 新建(對齊 V1 daily_publish_runner.bat) |
+| Win Task Scheduler | ✅ 3 trigger(8am morning / 12pm noon / 7pm evening) |
+| 圖片輪播 | ✅ ROTATING_IMAGE_POOL 4→34 張(4 portrait + 30 word_images) |
+| `deploy_images_to_static.py` | ✅ 新建(部署字圖到 nexus-academy.ai static) |
+| 30 張字圖 public | ✅ vocab-flashcards push `696b614`,album.jpg 確認 LIVE |
+
+### 架構原則確立
+
+**Cowork 負責「產內容」,本機 Win Task Scheduler 負責「發布到外部平台」**
+
+| Pipeline | 跑在哪 | 狀態 |
+|---|---|---|
+| YouTube daily_publish | 本機 Win Task Scheduler | ✅ |
+| Memoria blog auto publish | Cowork(git push,github 不被 proxy 擋) | ✅ |
+| Meta FB+IG auto publish | 本機 Win Task Scheduler(今天修好) | ✅ |
+
+### 已知 bug(Sprint A.5 修)
+
+- `auto_publish_meta.py` 沒去重 ── 同 slot 跑 2 次發 2 篇重複
+- Alex test 跑多次造成 FB/IG 累積重複貼文 ── 待手動清
+- 一直發 W3 文章 ── Echo 已寫 W4(`v3.5-blog-w04-*` 出現),待整合
+
+### Sprint A.5 待辦
+
+- [ ] auto_publish_meta 加 publish_log 去重檢查
+- [ ] word_images host 從 30 張擴充到 100+(重跑 deploy_images_to_static.py --limit 100)
+- [ ] auto_publish_meta 加「字卡模式」(對齊 Sprint A spec D7,每天發 1 字 1 圖)
+- [ ] V1 shorts_generator 字圖 patch 已 push,等 Alex 手動跑 render_all 觸發新字圖
+- [ ] Echo W4 連載整合進 publish pipeline
+
+---
+
 ## 2026-05-13(週三)── Sprint A Day 1 完整 LIVE
 
 > **Nexus Academy 第一次完整漏斗接通的日子。**
