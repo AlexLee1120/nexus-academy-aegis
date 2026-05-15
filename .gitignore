@@ -17,6 +17,10 @@ aegis_cache.db
 # Render 啟動時 git pull 拿最新 cache.json
 # 所以 aegis_cache.json 不在 .gitignore!
 
+# agent_status.json:本機中間檔(aegis-cron dump → cron_update_cache.py 讀 → 進 cache.json)
+# Render 透過 cache.json 拿 agent_status,不直接讀此檔,所以不進 git
+agent_status.json
+
 # Python
 __pycache__/
 *.pyc

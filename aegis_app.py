@@ -230,6 +230,9 @@ def build_dashboard_data() -> dict:
     ig_likes = get_metric_from_cache_or_sqlite(cache, "ig_likes_7d")
     ig_comments = get_metric_from_cache_or_sqlite(cache, "ig_comments_7d")
 
+    # ── Nexus Agent 戰情牌(只在 cache.json 有,SQLite fallback 沒有)
+    agent_status = cache.get("agent_status", []) if cache else []
+
     # ── Events(優先 cache,否 SQLite)
     if cache:
         events = cache.get("recent_events", [])[:50]
@@ -313,6 +316,7 @@ def build_dashboard_data() -> dict:
         "events": events,           # legacy,保留兼容 /api/metrics
         "events_recent": events_recent,   # 過去 2 天(預設展開顯示)
         "events_older": events_older,     # 2-7 天(摺疊收納)
+        "agent_status": agent_status,     # Nexus Agent 戰情牌(by agent group)
     }
 
 

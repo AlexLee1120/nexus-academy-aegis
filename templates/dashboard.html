@@ -346,6 +346,61 @@
         </section>
 
         <!-- ─────────────────────────────────────────── -->
+        <!-- Section 3.5: Nexus Agent 戰情牌(2026-05-15) -->
+        <!-- 一個畫面看所有 Cowork agent 排程狀態,防止 agent 默默掛掉 -->
+        <!-- ─────────────────────────────────────────── -->
+        <section>
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">🤖 Nexus Agent 戰情牌</h2>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                {% if data.agent_status|length == 0 %}
+                <div class="p-6 text-center text-slate-400">
+                    ⏳ agent_status.json 尚未 dump ── aegis-cron-update 下次 06:00 跑時生成
+                </div>
+                {% else %}
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-slate-600">Agent</th>
+                            <th class="px-4 py-2 text-left text-slate-600">排程</th>
+                            <th class="px-4 py-2 text-left text-slate-600">說明</th>
+                            <th class="px-4 py-2 text-right text-slate-600">上次跑</th>
+                            <th class="px-4 py-2 text-right text-slate-600">下次跑</th>
+                            <th class="px-4 py-2 text-center text-slate-600">狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for grp in data.agent_status %}
+                        {% for task in grp.tasks %}
+                        <tr class="{% if not task.enabled %}bg-amber-50{% endif %}">
+                            <td class="px-4 py-2 font-medium text-slate-800">
+                                {% if loop.first %}
+                                    {{ grp.agent }}
+                                    {% if grp.category == 'system' %}<span class="text-xs text-slate-400">(系統)</span>{% endif %}
+                                    {% if grp.category == 'alex_personal' %}<span class="text-xs text-slate-400">(個人)</span>{% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2 text-slate-500 text-xs">{{ task.schedule }}</td>
+                            <td class="px-4 py-2 text-slate-600 text-xs">{{ task.description[:36] }}</td>
+                            <td class="px-4 py-2 text-right text-slate-500 text-xs whitespace-nowrap">{{ task.last_run_tw }}</td>
+                            <td class="px-4 py-2 text-right text-slate-500 text-xs whitespace-nowrap">{{ task.next_run_tw }}</td>
+                            <td class="px-4 py-2 text-center">
+                                {% if task.enabled %}
+                                <span class="text-green-600">✅</span>
+                                {% else %}
+                                <span class="text-amber-600" title="已停用">⏸️</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+            <p class="text-xs text-slate-400 mt-2">資料來源:Cowork scheduled tasks(每天 06:00 aegis-cron 快照)── 每日快照非即時。⏸️ = 已停用,留意是否該重新啟用。</p>
+        </section>
+
+        <!-- ─────────────────────────────────────────── -->
         <!-- Section 4: 異常 Alert(過去 7 天)          -->
         <!-- ─────────────────────────────────────────── -->
         <section>

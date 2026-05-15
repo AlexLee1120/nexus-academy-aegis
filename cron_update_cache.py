@@ -675,12 +675,114 @@ def fetch_youtube_stats(days: int = 7) -> dict:
 
 
 # ─────────────────────────────────────────────────────
+# Nexus Agent 戰情牌 ── 讀 agent_status.json(Cowork scheduled tasks 狀態)
+# 2026-05-15:Alex Boss 要「一個畫面看哪個 agent 在跑/卡住」
+# agent_status.json 由 aegis-cron-update Cowork task 每天 dump(它有 MCP access)
+# cron_update_cache.py 純 Python 沒 MCP access,只負責 read + parse + 轉時區
+# ─────────────────────────────────────────────────────
+
+AGENT_STATUS_JSON_PATH = SCRIPT_DIR / "agent_status.json"
+
+# task → agent 對應(從 description「---XXX」後綴 + 關鍵字 parse)
+_AGENT_RULES = [
+    # (判斷函式, agent 名, category)
+    ("Echo 小迴", "Echo", "nexus_agent"),
+    ("小M2", "M2", "nexus_agent"),
+    ("小小星", "小小星", "nexus_agent"),
+    ("Lumi 小光", "Lumi", "nexus_agent"),
+    ("Verba 小語", "Verba", "nexus_agent"),
+    ("Bibli", "Bibli", "nexus_agent"),
+    ("Pact 小盟", "Pact", "nexus_agent"),
+    ("Buzz · 小波", "Buzz", "nexus_agent"),
+    ("Lens · 小鏡", "Lens", "nexus_agent"),
+    ("Aegis · 小盾", "Aegis", "nexus_agent"),
+    ("---小M", "主對話小 M", "nexus_agent"),
+]
+
+
+def _parse_agent(task_id: str, description: str) -> tuple:
+    """從 task description / id parse 出 (agent 名, category)"""
+    for keyword, agent, category in _AGENT_RULES:
+        if keyword in description:
+            return agent, category
+    # 系統 task
+    if task_id == "meta-publish-evening":
+        return "Meta 推播", "system"
+    if task_id == "memoria-blog-publish":
+        return "Blog 自動上架", "system"
+    # Alex 個人排程(產業情報 / 飆股 / 週報)
+    if task_id.startswith("alex-"):
+        return "Alex 個人", "alex_personal"
+    return "(未分類)", "other"
+
+
+def _utc_to_taipei(utc_iso: str) -> str:
+    """UTC ISO → 台灣時間字串 MM/DD HH:MM。None / 空 → '──'"""
+    if not utc_iso:
+        return "──"
+    try:
+        # 處理 Z 結尾 + 毫秒
+        s = utc_iso.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(s)
+        tw = dt + timedelta(hours=8)
+        return tw.strftime("%m/%d %H:%M")
+    except Exception:
+        return "??"
+
+
+def fetch_agent_status() -> list:
+    """讀 agent_status.json,parse agent 名 + 轉時區 + group by agent。
+    回傳 list of agent dict(給 dashboard 顯示):
+    [
+        {"agent": "Echo", "category": "nexus_agent",
+         "tasks": [{"task_id", "description", "schedule", "enabled",
+                    "last_run_tw", "next_run_tw", "health"}, ...]},
+        ...
+    ]
+    agent_status.json 不存在 → 回 [](dashboard 顯示「尚未 dump」)"""
+    if not AGENT_STATUS_JSON_PATH.exists():
+        return []
+    try:
+        data = json.loads(AGENT_STATUS_JSON_PATH.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"⚠️  agent_status.json parse 失敗: {e}")
+        return []
+
+    tasks = data.get("tasks", [])
+    # group by agent
+    groups = {}  # agent → {category, tasks: []}
+    for t in tasks:
+        agent, category = _parse_agent(t.get("task_id", ""), t.get("description", ""))
+        enabled = t.get("enabled", True)
+        health = "disabled" if not enabled else "ok"
+        task_view = {
+            "task_id": t.get("task_id", ""),
+            "description": t.get("description", ""),
+            "schedule": t.get("schedule", ""),
+            "enabled": enabled,
+            "last_run_tw": _utc_to_taipei(t.get("last_run_at")),
+            "next_run_tw": _utc_to_taipei(t.get("next_run_at")),
+            "health": health,
+        }
+        if agent not in groups:
+            groups[agent] = {"agent": agent, "category": category, "tasks": []}
+        groups[agent]["tasks"].append(task_view)
+
+    # category 排序:nexus_agent 優先 → system → alex_personal → other
+    cat_order = {"nexus_agent": 0, "system": 1, "alex_personal": 2, "other": 3}
+    result = sorted(groups.values(), key=lambda g: (cat_order.get(g["category"], 9), g["agent"]))
+    return result
+
+
+# ─────────────────────────────────────────────────────
 # Phase 1.5: Cache sync(SQLite → cache.json → git push 給 Render)
 # ─────────────────────────────────────────────────────
 
-def export_cache_to_json(conn: sqlite3.Connection) -> dict:
+def export_cache_to_json(conn: sqlite3.Connection, agent_status: list = None) -> dict:
     """從 SQLite query latest metrics + recent events,組成 cache.json schema
-    給 Render dashboard 直接 read(避免 Render 環境讀不到 Windows local files)"""
+    給 Render dashboard 直接 read(避免 Render 環境讀不到 Windows local files)
+
+    agent_status:由 fetch_agent_status() 傳入(不走 SQLite,直接放進 cache.json)"""
     cur = conn.cursor()
 
     # 拿每個 metric 的最新 value
@@ -730,10 +832,11 @@ def export_cache_to_json(conn: sqlite3.Connection) -> dict:
         })
 
     return {
-        "schema_version": "1.5.0",
+        "schema_version": "1.6.0",
         "exported_at": datetime.now().isoformat(),
         "latest_metrics": latest_metrics,
         "recent_events": events,
+        "agent_status": agent_status or [],
     }
 
 
@@ -990,6 +1093,20 @@ def main():
         insert_metric(conn, "yt_likes_7d", float(yt["likes_7d"]), "count", "youtube_data_api", dry_run=args.dry_run)
         insert_metric(conn, "yt_comments_7d", float(yt["comments_7d"]), "count", "youtube_data_api", dry_run=args.dry_run)
 
+    # ── 8. Nexus Agent 戰情牌(讀 agent_status.json)
+    print("\n📊 8. Nexus Agent 戰情牌(Cowork scheduled tasks 狀態)")
+    agent_status = fetch_agent_status()
+    if not agent_status:
+        print("   ⚠️  agent_status.json 不存在 / 空 ── aegis-cron-update task 還沒 dump 過?")
+    else:
+        total_tasks = sum(len(g["tasks"]) for g in agent_status)
+        disabled = sum(1 for g in agent_status for t in g["tasks"] if not t["enabled"])
+        print(f"   ✅ {len(agent_status)} 個 agent / {total_tasks} 個排程({disabled} 個 disabled)")
+        for g in agent_status:
+            for t in g["tasks"]:
+                mark = "⏸️" if not t["enabled"] else "✅"
+                print(f"     {mark} {g['agent']:<10} {t['task_id']:<32} 上次 {t['last_run_tw']} | 下次 {t['next_run_tw']}")
+
     # ── Commit SQLite
     if not args.dry_run:
         conn.commit()
@@ -1004,7 +1121,7 @@ def main():
     print("─" * 70)
 
     if conn is not None:
-        cache_data = export_cache_to_json(conn)
+        cache_data = export_cache_to_json(conn, agent_status=agent_status)
         write_cache_json(cache_data, dry_run=args.dry_run)
         git_push_cache(dry_run=args.dry_run)
         conn.close()
