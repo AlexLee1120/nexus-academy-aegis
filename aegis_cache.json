@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.5.0",
-  "exported_at": "2026-05-11T16:22:10.402890",
+  "schema_version": "1.6.0",
+  "exported_at": "2026-05-15T16:20:49.278172",
   "latest_metrics": {
     "buzz_captions_count": {
       "value": 0.0,
       "unit": "count",
       "source": "buzz_captions_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "fb_clicks_7d": {
       "value": 0.0,
@@ -18,7 +18,7 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "fb_engaged_7d": {
       "value": 0.0,
@@ -30,7 +30,7 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "fb_impressions_7d": {
       "value": 0.0,
@@ -42,19 +42,19 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "fb_publish_7d_fail": {
-      "value": 3.0,
+      "value": 7.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "fb_publish_7d_success": {
-      "value": 3.0,
+      "value": 7.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "fb_reach_7d": {
       "value": 0.0,
@@ -66,184 +66,289 @@
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "ig_comments_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "ig_interactions_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "ig_likes_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "ig_publish_7d_fail": {
-      "value": 0.0,
+      "value": 3.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "ig_publish_7d_success": {
-      "value": 2.0,
+      "value": 7.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "ig_reach_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "ig_saved_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "meta_graph_api",
-      "collected_at": "2026-05-11 08:22:08"
+      "collected_at": "2026-05-15 08:20:47"
     },
     "lens_reviews_count": {
       "value": 0.0,
       "unit": "count",
       "source": "lens_reports",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "memoria_articles_count": {
       "value": 3.0,
       "unit": "count",
       "source": "vocab_flashcards_blog_posts",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "memoria_progress_pct": {
       "value": 15.789473684210526,
       "unit": "percentage",
       "source": "vocab_flashcards_blog_posts",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "threads_publish_7d_fail": {
       "value": 0.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "threads_publish_7d_success": {
       "value": 0.0,
       "unit": "count",
       "source": "publish_log",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_active_subscriptions": {
       "value": 1.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_avg_ltv_twd": {
       "value": 299.0,
       "unit": "TWD",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_dau_1d": {
       "value": 0.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_mau_30d": {
       "value": 2.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_new_users_7d": {
-      "value": 2.0,
+      "value": 1.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_paying_users": {
       "value": 1.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_subscribers_count": {
       "value": 2.0,
       "unit": "count",
       "source": "v1_subscribers_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_total_ltv_twd": {
       "value": 299.0,
       "unit": "TWD",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_total_profiles": {
       "value": 2.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "v1_wau_7d": {
-      "value": 2.0,
+      "value": 1.0,
       "unit": "count",
       "source": "v1_customer_profile_json",
-      "collected_at": "2026-05-11 08:21:59"
+      "collected_at": "2026-05-15 08:20:33"
     },
     "yt_comments_7d": {
       "value": 0.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     },
     "yt_likes_7d": {
-      "value": 1.0,
+      "value": 0.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     },
     "yt_subscribers": {
       "value": 7.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     },
     "yt_total_videos": {
-      "value": 24.0,
+      "value": 30.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     },
     "yt_total_views": {
-      "value": 3700.0,
+      "value": 3708.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     },
     "yt_uploads_7d": {
-      "value": 9.0,
+      "value": 6.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     },
     "yt_views_7d": {
-      "value": 557.0,
+      "value": 0.0,
       "unit": "count",
       "source": "youtube_data_api",
-      "collected_at": "2026-05-11 08:22:10"
+      "collected_at": "2026-05-15 08:20:49"
     }
   },
   "recent_events": [
+    {
+      "id": 23,
+      "event_type": "meta_insights_partial_fail",
+      "severity": "warning",
+      "message": "Meta Graph API insights 部分 post 拉失敗(FB errors=7, IG errors=7)",
+      "data": {
+        "fb": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "engagement": 0,
+          "post_count": 7,
+          "errors": 7,
+          "error_samples": [
+            {
+              "post_id": "122099410125311206",
+              "error": "HTTP 400 | code=200 | type=OAuthException | msg=Cannot call API for app 2234517820418437 on behalf of user 27431566396427926"
+            },
+            {
+              "post_id": "122099696895311206",
+              "error": "HTTP 400 | code=200 | type=OAuthException | msg=Cannot call API for app 2234517820418437 on behalf of user 27431566396427926"
+            }
+          ],
+          "raw_samples": []
+        },
+        "ig": {
+          "reach": 0,
+          "interactions": 0,
+          "saved": 0,
+          "likes": 0,
+          "comments": 0,
+          "post_count": 7,
+          "errors": 7,
+          "error_samples": [
+            {
+              "media_id": "17908698267406947",
+              "error": "insights fail: Cannot call API for app 2234517820418437 on behalf of user 27431566396427926 | fallback fail: HTTP 400 | code=200 | type=OAuthException | msg=Cannot call API for app 2234517820418437 on behalf of user 27431566396427926"
+            },
+            {
+              "media_id": "17919468330358406",
+              "error": "insights fail: Cannot call API for app 2234517820418437 on behalf of user 27431566396427926 | fallback fail: HTTP 400 | code=200 | type=OAuthException | msg=Cannot call API for app 2234517820418437 on behalf of user 27431566396427926"
+            }
+          ],
+          "fallback_count": 0,
+          "raw_samples": []
+        }
+      },
+      "created_at": "2026-05-15 08:20:47"
+    },
+    {
+      "id": 22,
+      "event_type": "publish_fail",
+      "severity": "warning",
+      "message": "7 天內有 10 次 publish 失敗",
+      "data": {
+        "total": 24,
+        "success": 14,
+        "fail": 10,
+        "by_platform": {
+          "fb": {
+            "success": 7,
+            "fail": 7
+          },
+          "ig": {
+            "success": 7,
+            "fail": 3
+          },
+          "threads": {
+            "success": 0,
+            "fail": 0
+          }
+        }
+      },
+      "created_at": "2026-05-15 08:20:33"
+    },
+    {
+      "id": 21,
+      "event_type": "youtube_api_fail",
+      "severity": "error",
+      "message": "YouTube Data API fail: channels.list exception: HTTPSConnectionPool(host='www.googleapis.com', port=443): Max retries exceeded with url: /youtube/v3/channels?part=statistics%2CcontentDetails&id=UCmX",
+      "data": {
+        "channel_id": "UCmXf8DZ0qXV2N3RDw6VZQXA"
+      },
+      "created_at": "2026-05-13 22:11:06"
+    },
+    {
+      "id": 20,
+      "event_type": "fetch_fail",
+      "severity": "warning",
+      "message": "V1 customer_profile.json 讀取失敗: customer_profile.json 不存在於 C:/Alex/Github/vocab-flashcards/customer_profile.json",
+      "data": {
+        "source": "C:/Alex/Github/vocab-flashcards"
+      },
+      "created_at": "2026-05-13 22:11:05"
+    },
+    {
+      "id": 19,
+      "event_type": "fetch_fail",
+      "severity": "warning",
+      "message": "V1 subscribers.json 讀取失敗",
+      "data": {
+        "source": "C:/Alex/Github/vocab-flashcards"
+      },
+      "created_at": "2026-05-13 22:11:05"
+    },
     {
       "id": 18,
       "event_type": "publish_fail",
@@ -832,6 +937,290 @@
         }
       },
       "created_at": "2026-05-11 05:33:16"
+    }
+  ],
+  "agent_status": [
+    {
+      "agent": "Aegis",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "aegis-cron-update",
+          "description": "Aegis · 小盾 每天 06:00 cron 更新 SQLite cache",
+          "schedule": "At 06:09 AM, every day",
+          "enabled": true,
+          "last_run_tw": "05/15 06:09",
+          "next_run_tw": "05/16 06:09",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Bibli",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "l-book-blog-wed-sun-8am",
+          "description": "每天 08:00 V1 部落格自動上架早班 (掃 blog/posts untracked → push)---Bibli 小書",
+          "schedule": "At 08:06 AM, every day",
+          "enabled": true,
+          "last_run_tw": "05/15 08:06",
+          "next_run_tw": "05/16 08:05",
+          "health": "ok"
+        },
+        {
+          "task_id": "l-book-fu-blog-daily-8pm",
+          "description": "每天 20:00 V1 部落格自動上架晚班 (撿漏白天寫的, 雙保險)---Bibli 副 小書副",
+          "schedule": "At 08:03 PM, every day",
+          "enabled": true,
+          "last_run_tw": "05/14 20:03",
+          "next_run_tw": "05/15 20:02",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Buzz",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "memoria-buzz-caption-saturday",
+          "description": "Buzz · 小波 推波文案生成 ── 週六 11:00 為最新 v3.5-w*.md 文章生 9 個 caption",
+          "schedule": "At 11:06 AM, only on Saturday",
+          "enabled": true,
+          "last_run_tw": "──",
+          "next_run_tw": "05/16 11:06",
+          "health": "ok"
+        },
+        {
+          "task_id": "memoria-buzz-caption-wednesday",
+          "description": "Buzz · 小波 推波文案生成 ── 週三 22:00 為最新 v3.5-w*.md 文章生 9 個 caption",
+          "schedule": "At 10:02 PM, only on Wednesday",
+          "enabled": true,
+          "last_run_tw": "05/13 22:02",
+          "next_run_tw": "05/20 22:02",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Echo",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "l-echo-memoria_blog_1-sat-9am",
+          "description": "週六 09:00 寫 Memoria 連載主章/上篇---Echo 小迴",
+          "schedule": "At 09:07 AM, only on Saturday",
+          "enabled": true,
+          "last_run_tw": "05/09 09:07",
+          "next_run_tw": "05/16 09:07",
+          "health": "ok"
+        },
+        {
+          "task_id": "l-echo-memoria_blog_2-wed-8pm",
+          "description": "週三 20:00 寫 Memoria 連載下篇/番外---Echo 小迴",
+          "schedule": "At 08:02 PM, only on Wednesday",
+          "enabled": true,
+          "last_run_tw": "05/13 20:02",
+          "next_run_tw": "05/20 20:02",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Lens",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "memoria-lens-review",
+          "description": "Lens · 小鏡 推波數據監察 ── 每週日 09:00 聚合上週三平台 metrics + 給 Buzz 改 caption 建議",
+          "schedule": "At 09:09 AM, only on Sunday",
+          "enabled": true,
+          "last_run_tw": "──",
+          "next_run_tw": "05/17 09:09",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Lumi",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "l-light-ig-daily-update-7am",
+          "description": "每日 07:00 掃 weekly_content 找今日 IG 內容,準備上架包---Lumi 小光",
+          "schedule": "At 07:01 AM, every day",
+          "enabled": true,
+          "last_run_tw": "05/15 07:01",
+          "next_run_tw": "05/16 07:01",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "M2",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "xiao-m2-launch-ops-weekly",
+          "description": "週一 09:00 launch-ops sprint check-in(Newsletter/Discord/V3.5)---小M2",
+          "schedule": "At 09:08 AM, only on Monday",
+          "enabled": true,
+          "last_run_tw": "05/13 08:29",
+          "next_run_tw": "05/18 09:07",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Pact",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "l-pact-affiliate-mon-9am",
+          "description": "週一 09:00 Pact 小盟 affiliate Phase 1 spec weekly check-in---Pact 小盟",
+          "schedule": "At 09:08 AM, only on Monday",
+          "enabled": true,
+          "last_run_tw": "05/13 08:46",
+          "next_run_tw": "05/18 09:08",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Verba",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "l-verba-threads-daily-7am",
+          "description": "每日 07:00 掃 weekly_content 找今日 Threads,準備上架包---Verba 小語",
+          "schedule": "At 07:05 AM, every day",
+          "enabled": true,
+          "last_run_tw": "05/15 07:05",
+          "next_run_tw": "05/16 07:05",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "主對話小 M",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "nexus-daily-dashboard-check",
+          "description": "每日 18:00 Nexus Academy 數據儀表板進度提醒---小M",
+          "schedule": "At 06:04 PM, every day",
+          "enabled": true,
+          "last_run_tw": "05/14 18:04",
+          "next_run_tw": "05/15 18:03",
+          "health": "ok"
+        },
+        {
+          "task_id": "weekly-business-todo-check",
+          "description": "週一 09:00 提醒 Memoria 商標+角色肖像權兩件待辦---小M",
+          "schedule": "At 09:02 AM, only on Monday",
+          "enabled": true,
+          "last_run_tw": "05/13 08:29",
+          "next_run_tw": "05/18 09:01",
+          "health": "ok"
+        },
+        {
+          "task_id": "l-m-review-blog_draf-sun-10am",
+          "description": "週日 10:00 review Echo 連載草稿,寫 feedback log 把關 IP 一致性---小M",
+          "schedule": "At 10:02 AM, only on Sunday",
+          "enabled": true,
+          "last_run_tw": "05/10 10:02",
+          "next_run_tw": "05/17 10:01",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "小小星",
+      "category": "nexus_agent",
+      "tasks": [
+        {
+          "task_id": "l-l-star-srs_blog_content-mon-9am",
+          "description": "週一 09:00 產社群包+V1部落格+Memoria 接力上架---小小星",
+          "schedule": "At 09:08 AM, only on Monday",
+          "enabled": true,
+          "last_run_tw": "05/13 08:30",
+          "next_run_tw": "05/18 09:08",
+          "health": "ok"
+        },
+        {
+          "task_id": "l-l-star-yt_shorts-3day-9am",
+          "description": "週一/四/日 09:30 產 3 支 Shorts JSON 給 Alex 上 YouTube---小小星",
+          "schedule": "At 09:37 AM, only on Monday",
+          "enabled": true,
+          "last_run_tw": "05/14 09:37",
+          "next_run_tw": "05/17 09:36",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Blog 自動上架",
+      "category": "system",
+      "tasks": [
+        {
+          "task_id": "memoria-blog-publish",
+          "description": "每 30 分鐘檢查 vocab-flashcards/blog/posts/v3.5-w*.md 是否有新文章/修改 → 自動 git add + commit + push → Render auto-deploy → blog 上架",
+          "schedule": "Every 30 minutes, every hour, every day",
+          "enabled": true,
+          "last_run_tw": "05/15 13:32",
+          "next_run_tw": "05/15 14:01",
+          "health": "ok"
+        }
+      ]
+    },
+    {
+      "agent": "Meta 推播",
+      "category": "system",
+      "tasks": [
+        {
+          "task_id": "meta-publish-evening",
+          "description": "[DISABLED 2026-05-14] 改本機 Win Task Scheduler 跑 auto_publish_meta_runner.bat ── Cowork sandbox proxy 擋 graph.facebook.com (403)",
+          "schedule": "At 08:03 PM, every day",
+          "enabled": false,
+          "last_run_tw": "05/14 20:04",
+          "next_run_tw": "──",
+          "health": "disabled"
+        }
+      ]
+    },
+    {
+      "agent": "Alex 個人",
+      "category": "alex_personal",
+      "tasks": [
+        {
+          "task_id": "alex-daily-industry-intel",
+          "description": "每天 07:30 — 5 大主題產業情報彙整（AI 電力、HBM、探針卡、矽光子、CoWoS）",
+          "schedule": "At 07:33 AM, every day",
+          "enabled": true,
+          "last_run_tw": "05/15 07:33",
+          "next_run_tw": "05/16 07:32",
+          "health": "ok"
+        },
+        {
+          "task_id": "alex-daily-stock-radar",
+          "description": "每天 08:30 — 飆股雷達掃描（8 大訊號評分 + Top 推薦 + 持倉警示）",
+          "schedule": "At 08:39 AM, Monday through Friday",
+          "enabled": true,
+          "last_run_tw": "05/15 08:39",
+          "next_run_tw": "05/18 08:39",
+          "health": "ok"
+        },
+        {
+          "task_id": "alex-weekly-report",
+          "description": "每週日 21:00 — 週報（本週回顧 + 下週策略 + 大盤主題輪動）",
+          "schedule": "At 09:02 PM, only on Sunday",
+          "enabled": true,
+          "last_run_tw": "05/10 21:02",
+          "next_run_tw": "05/17 21:01",
+          "health": "ok"
+        }
+      ]
     }
   ]
 }
